@@ -1,5 +1,5 @@
 # mdCNN
-Multidimentioanl CNN. Matlab implementation of convolutional Neural Network framework, supporting 2D and 3D inputs
+Multidimentioanl CNN. Matlab implementation of convolutional Neural Network framework, supporting 2D and 3D input/kernels
 
 mdCNN is a framework used to train and test deep convulotional network. The framework supports all the major features such as droput, padding, stride, max pooling, L2 regularization, momentum , cross entropy/ MSE 
 
