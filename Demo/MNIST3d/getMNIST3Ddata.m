@@ -84,7 +84,7 @@ for k=1:imgNum
     I{k} = Transform2dto3d(I{k},len);
     if ( mod(k,1000)==0)
         close all;
-        showIso(I{k},0.15);
+        showIso(I{k},[]);
         fprintf('Finish image %d of %d\n',k,imgNum);
     end
 end
