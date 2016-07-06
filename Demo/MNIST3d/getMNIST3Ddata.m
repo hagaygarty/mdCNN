@@ -130,7 +130,7 @@ for k=1:imgNum
    
     if ( mod(k,1000)==0)
         close all;
-        showIso(I{k},0.1);
+        showIso(I{k},[]);
         fprintf('Finish image (test) %d of %d\n',k,imgNum);
     end
 end
