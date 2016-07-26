@@ -1,12 +1,9 @@
 # mdCNN
-Multidimensional CNN.  Matlab implementation of convolution Neural Network framework, supporting 2D and 3D input/kernels
+mdCNN is a MATLAB toolbox implementing Convolutional Neural Networks (CNNs) for 2D and 3D inputs. 
+Network is Multidimensional, kernels are in 3D and convolution is done in 3D. It is suitable for volumetric inputs such as CT / MRI, but can also support 2D image inputs.
 
-mdCNN is a framework used to train and test deep conventional network. The framework supports all the major features such as droput, padding, stride, max pooling, L2 regularization, momentum, cross entropy/ MSE 
-
-mdCNN Framework is completely written in matlab and supports 1D , 2D and 3D input size. Unlike most CNN implementations, this framework can process input where every feature map is three dimensional, hence good for 3D image processing such as CT and MRI. Kernels are 3 dimensional and convolution is done in 3D.
-
-
-Framework is heavily optimized and quite efficient. While training or testing, all of the CPU cores are participating by using Matlab Built-in Multi-threading capabilities.
+The framework supports all the major features such as droput, padding, stride, max pooling, L2 regularization, momentum, cross entropy/ MSE 
+Framework is completely written in matlab and is heavily optimized. While training or testing, all of the CPU cores are participating by using Matlab Built-in Multi-threading.
 
 There are several examples for networks pre-configured to run MNIST, CIFAR10 , and 3dMNIST - a special enhancement of MNIST dataset to 3D volumes.
 
@@ -27,6 +24,11 @@ In addition layer 1 filters will be shown.
 
 Check the 'mdCNN documentation.docx' file for more specification on how to configure a network
 
-For any questions, please contact me at hagaygarty@gmail.com
+For general questions regarding network design and training , please use the [forum](https://groups.google.com/forum/#!forum/mdcnn-multidimensional-cnn-library-in-matlab).
+
+Any other issues feel free to contact me at hagaygarty@gmail.com 
+
+Hagay
+
 
 
