@@ -1,5 +1,5 @@
 # mdCNN
-mdCNN is a MATLAB toolbox implementing Convolutional Neural Networks (CNNs) for 2D and 3D inputs. 
+mdCNN is a MATLAB toolbox implementing Convolutional Neural Networks (CNN) for 2D and 3D inputs. 
 Network is Multidimensional, kernels are in 3D and convolution is done in 3D. It is suitable for volumetric inputs such as CT / MRI, but can also support 2D image inputs.
 
 The framework supports all the major features such as droput, padding, stride, max pooling, L2 regularization, momentum, cross entropy/ MSE 
