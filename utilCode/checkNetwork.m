@@ -32,7 +32,7 @@ end
 
 startIter=clock;
 failedCount=0;
-numLabels = max(labels)-min(labels)+1;
+numLabels = nets{1}.properties.numOutputs;
 labelDist=(zeros(1,numLabels));
 failedIndex = [];
 failedMSE = [];
