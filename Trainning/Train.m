@@ -36,7 +36,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
 
 
  assert(net.hyperParam.numFmInput==1 || net.hyperParam.numFmInput==size(images.I{1},ndims(images.I{1})), 'Error - num Fm of input (%d) does not match network configuration (%d)',size(images.I{1},ndims(images.I{1})),net.hyperParam.numFmInput);
- assert(net.layers{end}.properties.numFm>max(images.labels), 'Error - size of output layer is too small for input');
+ assert(net.layers{end}.properties.numFm>max(images.labels), ['Error - size of output layer is too small for input. Output layer size is ' num2str(net.layers{end}.properties.numFm) ' , so labels should be in the range 0-' num2str(net.layers{end}.properties.numFm-1)]);
  assert(ndims((zeros([net.hyperParam.sizeFmInput net.hyperParam.numFmInput])))==ndims(GetNetworkInputs(images.I{1},net,1)), 'Error - input does not match network configuration (input size + num FM)');
  
  tic;
