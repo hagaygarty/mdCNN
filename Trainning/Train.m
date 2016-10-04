@@ -18,8 +18,8 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
 
  %images = normalize(images);
 
- net.runInfoParam.datasetInfo.numTest = length(images.I);
- net.runInfoParam.datasetInfo.numTrain = length(images.I_test);
+ net.runInfoParam.datasetInfo.numTest = length(images.I_test);
+ net.runInfoParam.datasetInfo.numTrain = length(images.I);
  net.runInfoParam.datasetInfo.firstImSize = num2str(size(images.I{1}));
  net.runInfoParam.datasetInfo.varFirstIm = var(double(images.I{1}(:)));
  net.runInfoParam.datasetInfo.minFirstIm = min(double(images.I{1}(:)));
