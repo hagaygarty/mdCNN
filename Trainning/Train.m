@@ -63,7 +63,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
  
  
  rng(net.runInfoParam.endSeed);
- fprintf('Start learnning cycle iterations\n');
+ fprintf('Start training cycle iterations\n');
  
  net.runInfoParam.startLoop=clock;
  maxImagesToTrain = numImagesToTrain + net.runInfoParam.imagesLearned;
