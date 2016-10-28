@@ -82,7 +82,7 @@ for k=1:imgNum
     I{k} = uint8(fread(fid,[rowSz colSz],'uchar'))';
     I{k} = imresize(I{k} , fact,'bilinear','Antialiasing',true );
     I{k} = Transform2dto3d(I{k},len);
-    if ( mod(k,2000)==0)
+    if ( mod(k,5000)==0)
        % close all;
        % showIso(I{k},[]);
         fprintf('Finish preparing image %d of %d\n',k,imgNum);
@@ -128,9 +128,9 @@ for k=1:imgNum
     I_test{k} = imresize(I_test{k} , fact,'bilinear','Antialiasing',true );
     I_test{k} = Transform2dto3d(I_test{k},len);
    
-    if ( mod(k,1000)==0)
-        close all;
-        showIso(I{k},[]);
+    if ( mod(k,5000)==0)
+       % close all;
+       % showIso(I{k},[]);
         fprintf('Finish image (test) %d of %d\n',k,imgNum);
     end
 end
