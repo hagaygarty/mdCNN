@@ -1,0 +1,16 @@
+{Not enough input arguments.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train', 'C:\Users\Hagay\Desktop\mdCNN\Trainning\Train.m', 21)" style="font-weight:bold">Train</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\Trainning\Train.m',21,0)">line 21</a>)
+ net.runInfoParam.datasetInfo.numTest = length(images.I_test);
+} 
+demoMnist3D
+multi dimentional CNN , Hagay Garty 2016 | hagaygarty@gmail.com
+Initializing network..
+Initializing layer 1
+Initializing layer 2
+[Warning: Layer 2 input plus pad is 16  16   7 , not a power of 2. Might reduce speed] 
+[> In initNetWeight
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('CreateNet', 'C:\Users\Hagay\Desktop\mdCNN\mdCNN\CreateNet.m', 32)" style="font-weight:bold">CreateNet</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\mdCNN\CreateNet.m',32,0)">line 32</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('demoMnist3D', 'C:\Users\Hagay\Desktop\mdCNN\Demo\MNIST3d\demoMnist3D.m', 6)" style="font-weight:bold">demoMnist3D</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\Demo\MNIST3d\demoMnist3D.m',6,0)">line 6</a>)] 
+Initializing layer 3
+Initializing layer 4

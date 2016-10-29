@@ -41,10 +41,10 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
  assert(net.hyperParam.numFmInput==1 || net.hyperParam.numFmInput==size(images.I{1},ndims(images.I{1})), 'Error - num Fm of input (%d) does not match network configuration (%d)',size(images.I{1},ndims(images.I{1})),net.hyperParam.numFmInput);
  assert(net.layers{end}.properties.numFm>max(images.labels) && min(images.labels)>=0, ['Error - size of output layer is too small for input. Output layer size is ' num2str(net.layers{end}.properties.numFm) ', labels should be in the range 0-' num2str(net.layers{end}.properties.numFm-1), '. current labels range is ' num2str(min(images.labels)) , '-' num2str(max(images.labels))]);
  if ( length(unique(images.labels)) ~= net.layers{end}.properties.numFm)
-    warning(['Trainning samples does not contain all classes. These should be ' num2str(net.layers{end}.properties.numFm) ' unique classes in trainning set, but it looks like there are ' num2str(length(unique(images.labels))) ' classes']);
+    warning(['Training samples does not contain all classes. These should be ' num2str(net.layers{end}.properties.numFm) ' unique classes in training set, but it looks like there are ' num2str(length(unique(images.labels))) ' classes']);
  end
  if ( runstest(images.labels) == 1 ) || issorted(images.labels) || issorted(fliplr(images.labels) )
-    warning('Trainning samples apear not to be in random order. For trainning to work well, class order in dataset need to be random. Please suffle labels and I (using the same seed) before passing to Train');
+    warning('Training samples apear not to be in random order. For training to work well, class order in dataset need to be random. Please suffle labels and I (using the same seed) before passing to Train');
  end
  
  
@@ -63,7 +63,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
  
  
  rng(net.runInfoParam.endSeed);
- fprintf('Start training cycle iterations\n');
+ fprintf('Start training iterations\n');
  
  net.runInfoParam.startLoop=clock;
  maxImagesToTrain = numImagesToTrain + net.runInfoParam.imagesLearned;
@@ -278,7 +278,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
      fprintf('\n');
      
      if (net.runInfoParam.imagesLearned>=maxImagesToTrain)
-         fprintf('Finish trainning. max images reached\n');
+         fprintf('Finish training. max images reached\n');
          break;
      end
 

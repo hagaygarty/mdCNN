@@ -1,0 +1,68 @@
+Number of images to test: 10000 , to train: 60000, first image size:=28  28  28, var=1576.9047142047, min=0.000000, max=255.000000
+    <strong>trainLoopCount</strong><strong>    testImageNum</strong><strong>    ni_initial</strong><strong>    ni_final</strong><strong>    noImprovementTh</strong><strong>    momentum</strong><strong>    constInitWeight</strong><strong>    lambda</strong><strong>    errorMethod</strong><strong>    testOnData</strong><strong>    addBackround</strong><strong>    testOnNull</strong><strong>    augmentImage</strong><strong>    augmentParams</strong><strong>    centralizeImage</strong><strong>    cropImage</strong><strong>    flipImage</strong><strong>    useRandomPatch</strong><strong>    testNumPatches</strong><strong>    selevtivePatchVarTh</strong><strong>    testOnMiddlePatchOnly</strong><strong>    normalizeNetworkInput</strong><strong>     sizeFmInput  </strong><strong>    numFmInput</strong>
+    <strong>______________</strong>    <strong>____________</strong>    <strong>__________</strong>    <strong>________</strong>    <strong>_______________</strong>    <strong>________</strong>    <strong>_______________</strong>    <strong>______</strong>    <strong>___________</strong>    <strong>__________</strong>    <strong>____________</strong>    <strong>__________</strong>    <strong>____________</strong>    <strong>_____________</strong>    <strong>_______________</strong>    <strong>_________</strong>    <strong>_________</strong>    <strong>______________</strong>    <strong>______________</strong>    <strong>___________________</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>______________</strong>    <strong>__________</strong>
+
+    500               2000            0.05          1e-05       50                 0           NaN                0         1              0             0               0             0               [1x1 struct]     0                  0            0            0                 1                 0                      0                        1                        28    28    28    1         
+
+    <strong>storeMaxMSENet</strong><strong>    verifyBP</strong><strong>    displayConvNet</strong><strong>    iter</strong><strong>    imagesLearned</strong><strong>    maxsucessRate</strong><strong>    noImprovementCount</strong><strong>    minMSE</strong><strong>    improvementRefMSE</strong><strong>      endSeed   </strong><strong>    datasetInfo </strong>
+    <strong>______________</strong>    <strong>________</strong>    <strong>______________</strong>    <strong>____</strong>    <strong>_____________</strong>    <strong>_____________</strong>    <strong>__________________</strong>    <strong>______</strong>    <strong>_________________</strong>    <strong>____________</strong>    <strong>____________</strong>
+
+    0                 1           0                 0       0                0                0                     Inf       Inf                  [1x1 struct]    [1x1 struct]
+
+Layer 1: Activation=Relu, dActivation=dRelu
+    <strong>type</strong><strong>    numFm</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>      kernel   </strong><strong>        pad    </strong><strong>      stride   </strong><strong>      pooling  </strong><strong>    numFmInPrevLayer</strong><strong>    sizeFmInPrevLayer</strong><strong>    dropOut</strong><strong>    inputDim</strong><strong>         out      </strong><strong>    numWeights</strong><strong>                    indexesStride                 </strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>________________</strong>    <strong>_________________</strong>    <strong>_______</strong>    <strong>________</strong>    <strong>______________</strong>    <strong>__________</strong>    <strong>______________________________________________</strong>
+
+    2       7        [1x1 function_handle]    [1x1 function_handle]    5    5    5    2    2    2    2    2    4    1    1    1    1                   28    28    28       1          3           14    14     7    882           [1x14 double]    [1x14 double]    [1x7 double]
+
+Layer 2: Activation=Relu, dActivation=dRelu
+    <strong>type</strong><strong>    numFm</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>      kernel   </strong><strong>        pad    </strong><strong>      pooling  </strong><strong>    numFmInPrevLayer</strong><strong>    sizeFmInPrevLayer</strong><strong>    dropOut</strong><strong>    inputDim</strong><strong>      stride   </strong><strong>         out      </strong><strong>    numWeights</strong><strong>                    indexesStride                 </strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>________________</strong>    <strong>_________________</strong>    <strong>_______</strong>    <strong>________</strong>    <strong>___________</strong>    <strong>______________</strong>    <strong>__________</strong>    <strong>______________________________________________</strong>
+
+    2       17       [1x1 function_handle]    [1x1 function_handle]    5    5    3    1    1    0    1    1    1    7                   14    14     7       1          3           1    1    1    12    12     5    8942          [1x12 double]    [1x12 double]    [1x5 double]
+
+Layer 3: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>    numFmInPrevLayer</strong><strong>    sizeFmInPrevLayer</strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    out</strong><strong>    numWeights</strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>________________</strong>    <strong>_________________</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>___</strong>    <strong>__________</strong>
+
+    1       128      17                  12    12     5       1          [1x1 function_handle]    [1x1 function_handle]    1      1.5668e+06
+
+Layer 4: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>    numFmInPrevLayer</strong><strong>    sizeFmInPrevLayer</strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    out</strong><strong>    numWeights</strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>________________</strong>    <strong>_________________</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>___</strong>    <strong>__________</strong>
+
+    1       10       128                 1                    1          [1x1 function_handle]    [1x1 function_handle]    1      1290      
+
+Network properties:
+
+    <strong>numLayers</strong><strong>    numOutputs</strong><strong>    version</strong><strong>      sources   </strong><strong>    numWeights</strong><strong>      sizeInput   </strong><strong>    InputNumFm</strong>
+    <strong>_________</strong>    <strong>__________</strong>    <strong>_______</strong>    <strong>____________</strong>    <strong>__________</strong>    <strong>______________</strong>    <strong>__________</strong>
+
+    4            10            1.1        [3x1 struct]    1.578e+06     28    28    28    1         
+
+Verifying backProp..Network is OK. Verification time=14.48
+Start training cycle iterations
+Iter 1  | Imgs=500  | time=67.55 | TrainErr=0.111430 | meanGrad=0.064707 | meanWeight=0.009325 | varWeight=0.000200 | MSE=1.492655 | scesRate=72.40% | minMSE=1.492655 | maxS=72.40% | ni=0.050000 | tstTime=52.31 | totalTime=119.88 | noImpCnt=0/50
+Iter 2  | Imgs=1000{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('mkconstarray', 'D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\mkconstarray.m', 8)" style="font-weight:bold">mkconstarray</a> (<a href="matlab: opentoline('D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\mkconstarray.m',8,0)">line 8</a>)
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('padarray_algo>ConstantPad', 'D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\padarray_algo.m', 72)" style="font-weight:bold">padarray_algo>ConstantPad</a> (<a href="matlab: opentoline('D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\padarray_algo.m',72,0)">line 72</a>)
+b         = mkconstarray(class(a), padVal, sizeB);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('padarray_algo', 'D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\padarray_algo.m', 29)" style="font-weight:bold">padarray_algo</a> (<a href="matlab: opentoline('D:\Program Files\MATLAB\R2015b\toolbox\images\images\private\padarray_algo.m',29,0)">line 29</a>)
+    b = ConstantPad(a, padSize, padVal, direction);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('padarray', 'D:\Program Files\MATLAB\R2015b\toolbox\images\images\padarray.m', 66)" style="font-weight:bold">padarray</a> (<a href="matlab: opentoline('D:\Program Files\MATLAB\R2015b\toolbox\images\images\padarray.m',66,0)">line 66</a>)
+b = padarray_algo(a, padSize, method, padVal, direction);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('backPropegate', 'C:\Users\Hagay\Desktop\mdCNN\mdCNN\backPropegate.m', 107)" style="font-weight:bold">backPropegate</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\mdCNN\backPropegate.m',107,0)">line 107</a>)
+            prevLayerOutput = padarray(prevLayerOutput, [layers{k}.properties.pad 0], 0 );
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train', 'C:\Users\Hagay\Desktop\mdCNN\Trainning\Train.m', 119)" style="font-weight:bold">Train</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\Trainning\Train.m',119,0)">line 119</a>)
+         [net.layers , error, dW]= backPropegate(net.layers, image, expectedOut, net.runInfoParam.iterInfo(end).ni, net.hyperParam.momentum ,
+         net.hyperParam.errorMethod ,  net.hyperParam.lambda);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('demoMnist3D', 'C:\Users\Hagay\Desktop\mdCNN\Demo\MNIST3d\demoMnist3D.m', 13)" style="font-weight:bold">demoMnist3D</a> (<a href="matlab: opentoline('C:\Users\Hagay\Desktop\mdCNN\Demo\MNIST3d\demoMnist3D.m',13,0)">line 13</a>)
+net   =  Train(MNIST3d,net, 15000);
+} 
+Train
