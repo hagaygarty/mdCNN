@@ -15,7 +15,9 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
  if ( ~isdir(logFolder) )
      mkdir(logFolder);
  end
- diary(fullfile(logFolder ,['Console_' datestr(datetime('now'),'dd-mm-yyyy_hh-MM-ss') '.txt']));
+
+ 
+diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt']));
 
  %images = normalize(images);
 
