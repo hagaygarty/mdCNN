@@ -183,8 +183,8 @@ plotconfusion(confMat2,confMat3);
 confMat4=confMat./repmat(sum(confMat,2),1,size(confMat,2));
 figure;
 surf(confMat4);
-xlabel('Label');
-ylabel('Network estimation');
+ylabel('Label');
+xlabel('Network estimation');
 zlabel('%');
 
 end
