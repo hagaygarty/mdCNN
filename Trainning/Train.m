@@ -117,7 +117,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
          expectedOut(label+1)=1;
 
          [net.layers , error, dW]= backPropegate(net.layers, image, expectedOut, net.runInfoParam.iterInfo(end).ni, net.hyperParam.momentum , net.hyperParam.errorMethod ,  net.hyperParam.lambda);
-         net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad+mean(abs(dW{1}{1}(:)));
+         net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad+mean(abs(dW{end}(:)));
          net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr=net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr+mean(abs(error{size(net.layers,2)}));
          trainErrCnt=trainErrCnt+1;
  %%%%%%%%%%%%%%%%%%%%%%%%%%%   NULL checking %%%%%%%%%%%%%%%%%%%%%%
