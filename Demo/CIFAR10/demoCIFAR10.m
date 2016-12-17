@@ -1,6 +1,5 @@
 % this will get CIFAR10 data automatically and start a trainning on a default
 % net configuration 'cifar10.conf'
-% it will reach 98% in about 10 min , 99.24% after couple of hours
 
 addpath('../../Trainning' , '../../mdCNN', '../../utilCode' );
 

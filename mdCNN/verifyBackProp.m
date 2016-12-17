@@ -1,10 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2015-16 Hagay Garty.
-% hagaygarty@gmail.com , All rights reserved.
-% This file is part of the mdCNN library
+% hagaygarty@gmail.com , mdCNN library
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
 function [ ] = verifyBackProp(layers)
+%% verification of network correctnes. Search for implementation errors by verifying the derivitives calculated by backProp are correct
+%% the function will verify backProp on some of the weights, (selected randomly)
 
 initSeed = rng;
 

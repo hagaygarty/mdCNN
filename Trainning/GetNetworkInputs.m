@@ -1,10 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2015-16 Hagay Garty.
-% All rights reserved.
-% This file is part of the mdCNN library
+% hagaygarty@gmail.com , mdCNN library
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
 function [ image ] = GetNetworkInputs(image , net , testTime)
+%% function manipulate a sample and preperes it for passing into the net first layer
+%% preperation can be bias removal , chane to variance 1 , scaling or patch selection , depending on the configuration
+
 
 inputDim = net.hyperParam.sizeFmInput;
 inputDim(end+1) = net.hyperParam.numFmInput;

@@ -1,10 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2015-16 Hagay Garty.
-% hagaygarty@gmail.com , All rights reserved.
-% This file is part of the mdCNN library
+% hagaygarty@gmail.com , mdCNN library
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
 function [ net ] = CreateNet( conf_file )
+%% Constructor for net struct , loads the configuration from conf_file
 
      net = initNetDefaults;
 	 

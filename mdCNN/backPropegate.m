@@ -1,8 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2015-16 Hagay Garty.
-% hagaygarty@gmail.com , All rights reserved.
-% This file is part of the mdCNN library
+% hagaygarty@gmail.com , mdCNN library
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 function [ layers , error , dW] = backPropegate(layers, input, expectedOut , ni, momentum , errMoethod , lambda)
 % 3 steps to doing back prop , first is feedForward, second is calculating the

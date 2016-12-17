@@ -1,10 +1,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) 2015-16 Hagay Garty.
-% hagaygarty@gmail.com , All rights reserved.
-% This file is part of the mdCNN library
+% hagaygarty@gmail.com , mdCNN library
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
 function [ outs ] = feedForward(layers, input , testTime)
+%% feedForward - pass a sample throud the net. Returning an array where the first index is the layer num, second is:
+%% 1 - the output of each neuron before activation.
+%% 2 - the output of each neuron after activation.
+%% 3 - selected dropout matrix
+%% 4 - indexes of max pooling (the index of the max value in the pooling section)
 
 outs = cell([4 size(layers,2)]);%pre allocate memory 
 
