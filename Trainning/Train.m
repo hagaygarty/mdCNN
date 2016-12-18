@@ -11,7 +11,7 @@ function [ net ] = Train( images ,  net , numImagesToTrain )
      numImagesToTrain=Inf;
  end
  
- logFolder = 'Logs'; 
+ logFolder = fullfile(pwd,'Logs'); 
  if ( ~isdir(logFolder) )
      mkdir(logFolder);
  end
