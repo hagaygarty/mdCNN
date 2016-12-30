@@ -12,7 +12,7 @@ function [ outs ] = feedForward(layers, input , testTime)
 % 3 - selected dropout matrix
 % 4 - indexes of max pooling (the index of the max value in the pooling section)
 
-outs = cell(4,1);
+outs = cell(size(layers,2),1);
 
 for k=1:size(layers,2)
     if (layers{k}.properties.type==1) 
