@@ -1,5 +1,5 @@
 
-addpath('../../Trainning' , '../../mdCNN' , '../../utilCode' );
+addpath('../../Training' , '../../mdCNN' , '../../utilCode' );
 % label is encoded in the sample in binary format using 4
 % bits. ie label 7 will be encoded in the middle of the sample [x x x x 0 1 1 1 x x x x]
 % network will learn to classify the samples and will eventually 'look'

@@ -1,7 +1,7 @@
 % this demo will get MNIST data automatically and start a training on network specified in 'mnist.conf'
 % it will reach 94% in several minutes, 99.2% in couple of hours
 
-addpath('../../Trainning' , '../../mdCNN' , '../../utilCode' );
+addpath('../../Training' , '../../mdCNN' , '../../utilCode' );
 
 net = CreateNet('../../Configs/mnist.conf'); 
 
@@ -11,7 +11,7 @@ MNIST = getMNISTdata(dataset_folder);
 
 % start training, will train for 15k images. Reach about 96.30% in several minutes. 
 % In order to reach 99.2% remove the last parameter (15k) and let it train longer.
-% It will stop trainning automatically (once ni reach below thresh)
+% It will stop training automatically (once ni reach below thresh)
 net   =  Train(MNIST,net, 15000);
 
 
@@ -25,5 +25,5 @@ displayFilters(net , MNIST.I{1} , num2str(MNIST.labels(1)));
 
 % Notes:
 % Train will save the network to a file after each iteration. (net.mat) 
-% you can call 'Train' again on an existing net, it will continue trainning where it stopped.
+% you can call 'Train' again on an existing net, it will continue training where it stopped.
 

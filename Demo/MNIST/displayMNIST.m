@@ -272,23 +272,23 @@ end
     function hRecognizeButtonCallback()
         
         image = preproc_image(mIconCData)';
-        outs=0;
+        net_outs=0;
         for netIdx=1:length(nets)
             input = GetNetworkInputs(image , nets{netIdx} , 1);
-            a = feedForward(nets{netIdx}.layers, input , 1);
-            outs=outs+a{2,end};
+            outs = feedForward(nets{netIdx}.layers, input , 1);
+            net_outs=net_outs+outs{end}.activation;
         end
-        outs = outs / length(nets);
+        net_outs = net_outs / length(nets);
         
        % outs = outs-min(outs);
        % outs = outs./sum(outs);
         
-        %a{2,end}
-        [M,m] = max(outs);
+        %a{end}.activation
+        [M,m] = max(net_outs);
 
         max_out = M;
-        for out_i = 1:numel(outs),
-            set(hResultDigits(out_i), 'ForegroundColor', [1 1 1]*(1.8-outs(out_i))/3.6)
+        for out_i = 1:numel(net_outs),
+            set(hResultDigits(out_i), 'ForegroundColor', [1 1 1]*(1.8-net_outs(out_i))/3.6)
         end
         
         digit = m - 1;

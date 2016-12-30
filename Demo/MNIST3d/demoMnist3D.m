@@ -1,6 +1,6 @@
 % this demo will get MNIST data automatically and start a training on network specified in 'mnist.conf'
 
-addpath('../../Trainning' , '../../mdCNN', '../../utilCode');
+addpath('../../Training' , '../../mdCNN', '../../utilCode');
 
 net = CreateNet('../../Configs/mnist3d.conf'); 
 
@@ -13,7 +13,7 @@ net   =  Train(MNIST3d,net, 15000);
 
 % Notes:
 % Train will save the network to a file after each iteration. (net.mat) 
-% you can call 'Train' again on an existing net, it will continue trainning where it stopped.
+% you can call 'Train' again on an existing net, it will continue training where it stopped.
 
 checkNetwork(net,Inf,MNIST3d,1);
 

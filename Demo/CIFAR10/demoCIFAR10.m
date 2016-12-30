@@ -1,7 +1,7 @@
-% this will get CIFAR10 data automatically and start a trainning on a default
+% this will get CIFAR10 data automatically and start a training on a default
 % net configuration 'cifar10.conf'
 
-addpath('../../Trainning' , '../../mdCNN', '../../utilCode' );
+addpath('../../Training' , '../../mdCNN', '../../utilCode' );
 
 % create network from config file
 net = CreateNet('../../Configs/cifar10.conf'); 

@@ -67,7 +67,7 @@ for idx=1:num;
     for patchIdx=1:numPatchesToTest
         patch = GetNetworkInputs(image, nets{1}, 1);
         outs = feedForward(nets{1}.layers, patch , 1);
-        patchAccumRes=patchAccumRes+outs{2,end};
+        patchAccumRes=patchAccumRes+outs{end}.activation;
     end
 
     patchAccumRes = patchAccumRes/numPatchesToTest;
@@ -135,7 +135,7 @@ for idx=worseMSEIdx
     for patchIdx=1:numPatchesToTest
         patch = GetNetworkInputs(image, nets{1}, 1);
         outs = feedForward(nets{1}.layers, patch , 1);
-        patchAccumRes=patchAccumRes+outs{2,end};
+        patchAccumRes=patchAccumRes+outs{end}.activation;
     end
 
     patchAccumRes = patchAccumRes/numPatchesToTest;
