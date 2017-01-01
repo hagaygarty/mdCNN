@@ -280,7 +280,7 @@ end
         for netIdx=1:length(nets)
             input = GetNetworkInputs(image , nets{netIdx} , 1);
             a = feedForward(nets{netIdx}.layers, input , 1);
-            outs=outs+a{2,end};
+            outs=outs+a{end}.activation;
         end
         outs = outs / length(nets);
         

@@ -1,0 +1,12 @@
+*.txt
+*.mat
+Demo/MNIST/MNIST_dataset/t10k-images-idx3-ubyte
+Demo/MNIST3d/MNIST3d_dataset/t10k-images-idx3-ubyte
+Demo/MNIST3d/MNIST3d_dataset/train-labels-idx1-ubyte
+Demo/MNIST/MNIST_dataset/train-images-idx3-ubyte
+Demo/MNIST3d/MNIST3d_dataset/train-images-idx3-ubyte
+*.tar
+Demo/CIFAR10/CIFAR10_dataset/cifar-10-batches-mat/readme.html
+Demo/MNIST3d/MNIST3d_dataset/t10k-labels-idx1-ubyte
+Demo/MNIST/MNIST_dataset/t10k-labels-idx1-ubyte
+Demo/MNIST/MNIST_dataset/train-labels-idx1-ubyte
