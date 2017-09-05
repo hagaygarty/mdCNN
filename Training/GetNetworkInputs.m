@@ -24,21 +24,23 @@ if (net.hyperParam.numFmInput~=1)
     image = reshape(image , [singleFmDim net.hyperParam.numFmInput] );
 end
 
-for fm=1:net.hyperParam.numFmInput
-    singleFm=image(:,:,:,fm);
-    singleFm = singleFm-min(singleFm(:));
-    
-    if ( isfield(net.hyperParam.augmentParams, 'medianFilt') && (net.hyperParam.augmentParams.medianFilt > 0) )
-        data = sort(singleFm(:));
-        th = data(floor((length(data)-1)*net.hyperParam.augmentParams.medianFilt+1));
-        singleFm(singleFm<th) = 0;
-    end
-   
-    maxImg=max(singleFm(:));
-    if ( maxImg~=0 )
-        singleFm = singleFm/maxImg;
-    end
-    image(:,:,:,fm) = singleFm;
+if (net.hyperParam.normalizeNetworkInput==1)
+	for fm=1:net.hyperParam.numFmInput
+		singleFm=image(:,:,:,fm);
+		singleFm = singleFm-min(singleFm(:));
+		
+		if ( isfield(net.hyperParam.augmentParams, 'medianFilt') && (net.hyperParam.augmentParams.medianFilt > 0) )
+			data = sort(singleFm(:));
+			th = data(floor((length(data)-1)*net.hyperParam.augmentParams.medianFilt+1));
+			singleFm(singleFm<th) = 0;
+		end
+	   
+		maxImg=max(singleFm(:));
+		if ( maxImg~=0 )
+			singleFm = singleFm/maxImg;
+		end
+		image(:,:,:,fm) = singleFm;
+	end
 end
 
 if (net.hyperParam.centralizeImage) && (~testTime)
