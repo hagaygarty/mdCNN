@@ -243,7 +243,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
          if (net.hyperParam.errorMethod==1)
              eps=1e-20;
-             err(i) = -sum((expectedOut).*log(max(eps,patchAccumRes)) + (1-expectedOut).*log(1-max(eps,patchAccumRes))); %#ok<AGROW>
+             err(i) = -sum((expectedOut).*log(max(eps,patchAccumRes)) + (1-expectedOut).*log(max(eps,1-patchAccumRes))); %#ok<AGROW>
          else
              err(i) = 0.5*sum((expectedOut-patchAccumRes).^2); %#ok<AGROW>
          end
