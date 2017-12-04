@@ -89,7 +89,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      %% start training loop
      for i=1:net.hyperParam.trainLoopCount
          idx = mod(net.runInfoParam.samplesLearned,length(dataset.I))+1;
-         sample=double(dataset.I{idx})/255;
+         sample=double(dataset.I{idx});
          label = dataset.labels(idx);
              
          if (net.hyperParam.augmentImage==1)
@@ -101,7 +101,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
              starty=randi(1+size(backroundImage,1)-size(sample,1));
              startx=randi(1+size(backroundImage,2)-size(sample,2));
  
-             patch = double(backroundImage(starty:(starty+size(sample,1)-1) ,startx:(startx+size(sample,2)-1) ))/255;
+             patch = double(backroundImage(starty:(starty+size(sample,1)-1) ,startx:(startx+size(sample,2)-1) ));
  
              switch randi(2)
                  case 1
@@ -152,7 +152,6 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
                  sample((end-pointy+1):end,(end-pointx+1):end) = dataset.I{imgIdxs(4)}(1:pointy,1:pointx);
              end
              
-             sample = sample/255;
              
              if (net.hyperParam.augmentImage==1)
                  [sample,complement] = manipulateImage(sample,net.hyperParam.augmentParams.noiseVar, net.hyperParam.augmentParams.maxAngle , net.hyperParam.augmentParams.maxScaleFactor, net.hyperParam.augmentParams.minScaleFactor , net.hyperParam.augmentParams.maxStride, net.hyperParam.augmentParams.maxSigma, net.hyperParam.augmentParams.imageComplement);
@@ -163,7 +162,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
                  starty=randi(1+size(backroundImage,1)-size(sample,1));
                  startx=randi(1+size(backroundImage,2)-size(sample,2));
  
-                 patch = double(backroundImage(starty:(starty+size(sample,1)-1) ,startx:(startx+size(sample,2)-1) ))/255;
+                 patch = double(backroundImage(starty:(starty+size(sample,1)-1) ,startx:(startx+size(sample,2)-1) ));
                  switch randi(2)
                      case 1
                          sample = imfuse(sample,patch);
@@ -193,7 +192,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
              starty=randi(1+size(backroundImage,1)-net.hyperParam.sizeFmInput(1));
              startx=randi(1+size(backroundImage,2)-net.hyperParam.sizeFmInput(2));
  
-             patch = backroundImage(starty:(starty+net.hyperParam.sizeFmInput(1)-1) ,startx:(startx+net.hyperParam.sizeFmInput(2)-1) )/255;
+             patch = backroundImage(starty:(starty+net.hyperParam.sizeFmInput(1)-1) ,startx:(startx+net.hyperParam.sizeFmInput(2)-1) );
              sample = GetNetworkInputs(patch, net, 0);
              expectedOut=zeros(1,net.layers{end}.properties.numFm);
 
@@ -221,7 +220,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      %% test testing loop
      for i=1:net.hyperParam.testImageNum;
          idx=mod(i-1,length(dataset.I_test))+1;
-         sample=double(dataset.I_test{idx})/255;
+         sample=double(dataset.I_test{idx});
          label = dataset.labels_test(idx);
          
          
