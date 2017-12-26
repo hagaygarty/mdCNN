@@ -12,9 +12,9 @@ dataset_folder = 'CIFAR10_dataset';
 CIFAR10 = getCIFAR10data(dataset_folder);    
 
 % start trainninig
-net   =  Train(CIFAR10,net); 
+net   =  Train(CIFAR10,net, 1e6); 
 
-checkNetwork(net,1e6,CIFAR10,1);
+checkNetwork(net,Inf,CIFAR10,1);
 
 displayCIFAR10(net, fullfile(dataset_folder ,'CIFAR10.mat'),1);
 
