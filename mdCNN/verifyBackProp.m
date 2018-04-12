@@ -12,7 +12,7 @@ initSeed = rng;
 
 fprintf('Verifying backProp..');
 
-errorMethod = 1;
+errorMethod = net.hyperParam.errorMethod;
 
 if (net.layers{1}.properties.type==1) % is fully connected layer 
     input = normrnd(0,1, 1 , size(net.layers{1}.fcweight,1)-1);
