@@ -21,9 +21,7 @@ for k=size(net.layers,2):-1:1
             net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(outs{k}.activation-expectedOut)./(outs{k}.activation.*(1-outs{k}.activation));%cross entropy
         end
     else  %other layers
-         if (net.layers{k}.properties.type==0) % is softmax layer
-          assert(0);   
-         elseif (net.layers{k}.properties.type==1) % is fully connected layer
+         if (net.layers{k}.properties.type<=1) % is fully connected or softmax layer
              if (net.layers{k+1}.properties.type==1)
                 net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(net.layers{k+1}.error*net.layers{k+1}.fcweight(1:(end-1),:)');
              else
