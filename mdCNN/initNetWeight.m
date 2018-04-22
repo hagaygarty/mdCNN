@@ -209,5 +209,7 @@ function [ net ] = initNetWeight( net )
 	assert(net.layers{end}.properties.type==1,'Last layer must be FC layer');
 	assert(net.layers{end}.properties.dropOut==1,'Last layer must be with dropout=1');
 
+    assert( ~((net.hyperParam.errorMethod==1) && (net.layers{end}.properties.Activation(-10)<=0) || (net.layers{end}.properties.Activation(10)>=1)),'Error - when using cross entropy the activation function of the last layer must be bigger then zero and smaller then 1');
+    
 end
 
