@@ -9,6 +9,9 @@ function [ net ] = updateWeights(net, ni, momentum , lambda )
 
 %update network weights
 for k=size(net.layers,2):-1:1
+    if (net.layers{k}.properties.type==0) % is softmax layer
+        continue;
+    end
     if (net.layers{k}.properties.type==1) % is fully connected layer
         if (lambda~=0)
             weightDecay = ones(size(net.layers{k}.fcweight));

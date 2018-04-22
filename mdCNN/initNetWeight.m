@@ -44,6 +44,12 @@ function [ net ] = initNetWeight( net )
         if (isfield(net.layers{k}.properties,'dropOut')==0)
             net.layers{k}.properties.dropOut=1;
         end
+        if ( net.layers{k}.properties.type==0)
+            assert(net.layers{k}.properties.numFm==net.layers{k-1}.properties.numFm,'Error in layer %d. softmax layer must have the same number of FM as previous layer',k);
+            net.layers{k}.properties.Activation=@Relu;
+            net.layers{k}.properties.dActivation=@dRelu;
+        end
+        
         if (isfield(net.layers{k}.properties,'Activation')==0)
             net.layers{k}.properties.Activation=@Sigmoid;
         end
@@ -53,7 +59,7 @@ function [ net ] = initNetWeight( net )
 
         assert(((net.layers{k}.properties.dropOut<=1) &&(net.layers{k}.properties.dropOut>0)) ,'Dropout must be >0 and <=1 in layer %d',k);
         
-        if ( net.layers{k}.properties.type==1) % is fully connected layer
+        if ( net.layers{k}.properties.type<=1) % is softmax or fully connected layer
             net.layers{k}.properties.out = 1;
         else
             net.layers{k}.properties.inputDim = sum(net.layers{k}.properties.sizeFmInPrevLayer>1);
@@ -125,9 +131,11 @@ function [ net ] = initNetWeight( net )
         
 
         
-        if (net.layers{k}.properties.type==1) % is fully connected layer
+        if (net.layers{k}.properties.type<=1) % is fully connected layer
             numNewronsInPrevLayer = net.layers{k}.properties.numFmInPrevLayer*prod(net.layers{k}.properties.sizeFmInPrevLayer);
             numInputs=numNewronsInPrevLayer+1;
+            if (net.layers{k}.properties.type==1)
+                net.properties.lastFCLayer=k;
             net.layers{k}.fcweight = normrnd(0,1/sqrt(numInputs*prevLayerActivation),numInputs,net.layers{k}.properties.numFm);% add one for bias
             net.layers{k}.momentum = net.layers{k}.fcweight * 0;
             if (~isnan(net.hyperParam.constInitWeight))
@@ -135,6 +143,10 @@ function [ net ] = initNetWeight( net )
             end
             net.layers{k}.dW = zeros(size(net.layers{k}.fcweight));
             net.layers{k}.properties.numWeights = numel(net.layers{k}.fcweight);
+            else
+                net.layers{k}.properties.numWeights = 0;
+            end
+            
         else   % is conv layer
             net.layers{k}.properties.numWeights = 0;
             for fm=1:net.layers{k}.properties.numFm
@@ -206,10 +218,10 @@ function [ net ] = initNetWeight( net )
         prevLayerActivation = net.layers{k}.properties.dropOut;
     end
 	
-	assert(net.layers{end}.properties.type==1,'Last layer must be FC layer');
+	assert(net.layers{end}.properties.type<=1,'Last layer must be FC layer or softmax layer');
 	assert(net.layers{end}.properties.dropOut==1,'Last layer must be with dropout=1');
 
-    assert( ~((net.hyperParam.errorMethod==1) && (net.layers{end}.properties.Activation(-10)<=0) || (net.layers{end}.properties.Activation(10)>=1)),'Error - when using cross entropy the activation function of the last layer must be bigger then zero and smaller then 1');
+    assert( ~( (net.hyperParam.errorMethod==1) && (net.layers{end}.properties.type~=0) && ((net.layers{end}.properties.Activation(-10)<=0) || (net.layers{end}.properties.Activation(10)>=1))),'Error - when using cross entropy the activation function of the last layer must be bigger then zero and smaller then 1');
     
 end
 

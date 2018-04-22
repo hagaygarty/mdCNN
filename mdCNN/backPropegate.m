@@ -21,8 +21,17 @@ for k=size(net.layers,2):-1:1
             net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(outs{k}.activation-expectedOut)./(outs{k}.activation.*(1-outs{k}.activation));%cross entropy
         end
     else  %other layers
-         if (net.layers{k}.properties.type==1) % is fully connected layer
-             net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(net.layers{k+1}.error*net.layers{k+1}.fcweight(1:(end-1),:)');
+         if (net.layers{k}.properties.type==0) % is softmax layer
+          assert(0);   
+         elseif (net.layers{k}.properties.type==1) % is fully connected layer
+             if (net.layers{k+1}.properties.type==1)
+                net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(net.layers{k+1}.error*net.layers{k+1}.fcweight(1:(end-1),:)');
+             else
+                assert(net.layers{k+1}.properties.type==0);
+                expActivation=exp(outs{k}.activation);
+                sumExp=sum(expActivation);
+                net.layers{k}.error =net.layers{k}.properties.dActivation(outs{k}.z).*(sum((sumExp*eye(length(expActivation))-expActivation).*net.layers{k+1}.error,2).'.*expActivation/sumExp^2 );
+             end
              if (net.layers{k}.properties.dropOut~=1)
                  net.layers{k}.error = outs{k}.dropout.*net.layers{k}.error;%dropout
              end
@@ -89,7 +98,8 @@ for k=size(net.layers,2):-1:1
         prevLayerType = net.layers{k-1}.properties.type;
     end
 
-    if (net.layers{k}.properties.type==1) % is fully connected layer
+    if (net.layers{k}.properties.type==0) % is softmax layer
+    elseif (net.layers{k}.properties.type==1) % is fully connected layer
         if (prevLayerType==2) %prev if conv
             prevLayerOutput = reshape(prevLayerOutput, 1,[]);
         end

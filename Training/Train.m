@@ -122,7 +122,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
 
          net = backPropegate(net, sample, expectedOut);
          
-         net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad+mean(abs(net.layers{end}.dW(:)));
+         net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad+mean(abs(net.layers{net.properties.lastFCLayer}.dW(:)));
          net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr=net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr+mean(abs(net.layers{size(net.layers,2)}.error));
 
          if (net.runInfoParam.batchIdx >= net.hyperParam.batchNum)
@@ -357,7 +357,7 @@ function [ res ] = perfomOnNetWeights( net , func)
     for k=1:size(net.layers,2)
          if (net.layers{k}.properties.type==1) % is fully connected layer  
              weights=[weights ; net.layers{k}.fcweight(:)]; %#ok<AGROW>
-         else
+         elseif (net.layers{k}.properties.type==2)
              for fm=1:length(net.layers{k}.weight)
                  weights=[weights ; net.layers{k}.weight{fm}(:)]; %#ok<AGROW>
              end

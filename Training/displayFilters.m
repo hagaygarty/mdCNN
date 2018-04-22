@@ -25,6 +25,9 @@ imshow(input);
 title('Normalized Input');
 
 for k=1:size(net.layers,2)
+    if (net.layers{k}.properties.type==0)
+        continue
+    end
     layerMin = Inf; layerMax = -Inf;
     for fm=1:min(imagePerXAxe,net.layers{k}.properties.numFm)
         if (net.layers{k}.properties.type==1) % is fully connected layer

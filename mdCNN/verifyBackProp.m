@@ -34,6 +34,9 @@ numIter=1;
 startVerification=clock;
 
 for k=1:size(net.layers,2)
+    if (net.layers{k}.properties.type==0)
+        continue;
+    end
     estimateddActivation = (net.layers{k}.properties.Activation(1+dw)-net.layers{k}.properties.Activation(1))/dw;
     realdActivation = net.layers{k}.properties.dActivation(1);
     diff = estimateddActivation-realdActivation;
@@ -102,7 +105,7 @@ end
 
 %check bias weight
 for k=1:size(net.layers,2)
-    if (net.layers{k}.properties.type==1) % is fully connected layer
+    if (net.layers{k}.properties.type<=1) % is fully connected layer or softmax
         continue; %tested already in upper section
     end
     

@@ -15,7 +15,10 @@ function [ outs ] = feedForward(layers, input , testTime)
 outs = cell(size(layers,2),1);
 
 for k=1:size(layers,2)
-    if (layers{k}.properties.type==1) 
+    if (layers{k}.properties.type==0) 
+        %% softmax layer
+        outs{k}.z =exp(input)/sum(exp(input));
+    elseif (layers{k}.properties.type==1) 
         %% fully connected layer
         outs{k}.z =[reshape(input, 1,[]) 1] * layers{k}.fcweight;
     else
