@@ -28,7 +28,7 @@ for k=size(net.layers,2):-1:1
                 assert(net.layers{k+1}.properties.type==0);
                 expActivation=exp(outs{k}.activation);
                 sumExp=sum(expActivation);
-                net.layers{k}.error =net.layers{k}.properties.dActivation(outs{k}.z).*(sum((sumExp*eye(length(expActivation))-expActivation).*net.layers{k+1}.error,2).'.*expActivation/sumExp^2 );
+                net.layers{k}.error =net.layers{k}.properties.dActivation(outs{k}.z).*((sumExp*net.layers{k+1}.error-sum(expActivation.*net.layers{k+1}.error)).*expActivation/sumExp^2);
              end
              if (net.layers{k}.properties.dropOut~=1)
                  net.layers{k}.error = outs{k}.dropout.*net.layers{k}.error;%dropout
