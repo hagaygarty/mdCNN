@@ -19,6 +19,9 @@ for k=size(net.layers,2):-1:1
             net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(outs{k}.activation-expectedOut);
         else       
             net.layers{k}.error = net.layers{k}.properties.dActivation(outs{k}.z).*(outs{k}.activation-expectedOut)./(outs{k}.activation.*(1-outs{k}.activation));%cross entropy
+
+            nanPos = (outs{k}.activation.*(1-outs{k}.activation)==0) & (((outs{k}.activation-expectedOut)==0)|(net.layers{k}.properties.dActivation(outs{k}.z)==0)); % eliminate 0/0
+            net.layers{k}.error(nanPos) = net.layers{k}.properties.dActivation(outs{k}.z(nanPos))./(1-2*outs{k}.activation(nanPos));% f/g is undefined when f=0 and g=0 so return the limit f'/g' instead 
         end
     else  %other layers
          if (net.layers{k}.properties.type<=1) % is fully connected or softmax layer
