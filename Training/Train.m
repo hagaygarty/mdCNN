@@ -41,8 +41,8 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  end
 
 
- assert(net.hyperParam.numFmInput==1 || net.hyperParam.numFmInput==size(dataset.I{1},ndims(dataset.I{1})), 'Error - num Fm of input (%d) does not match network configuration (%d)',size(dataset.I{1},ndims(dataset.I{1})),net.hyperParam.numFmInput);
- assert(net.layers{end}.properties.numFm>max(dataset.labels) && min(dataset.labels)>=0, ['Error - size of output layer is too small for input. Output layer size is ' num2str(net.layers{end}.properties.numFm) ', labels should be in the range 0-' num2str(net.layers{end}.properties.numFm-1), '. current labels range is ' num2str(min(dataset.labels)) , '-' num2str(max(dataset.labels))]);
+ assert(net.layers{1}.properties.numFm==1 || net.layers{1}.properties.numFm==size(dataset.I{1},ndims(dataset.I{1})), 'Error - num Fm of input (%d) does not match network configuration (%s)',size(dataset.I{1},ndims(dataset.I{1})),num2str([net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm]));
+ assert(net.layers{end}.properties.numFm>max(dataset.labels) && min(dataset.labels)>=0, ['Error - size of output layer is too small for input. Output layer size is ' num2str(net.layers{end-1}.properties.numFm) ', labels should be in the range 0-' num2str(net.layers{end-1}.properties.numFm-1), '. current labels range is ' num2str(min(dataset.labels)) , '-' num2str(max(dataset.labels))]);
  if ( length(unique(dataset.labels)) ~= net.layers{end}.properties.numFm)
     warning(['Training samples does not contain all classes. These should be ' num2str(net.layers{end}.properties.numFm) ' unique classes in training set, but it looks like there are ' num2str(length(unique(dataset.labels))) ' classes']);
  end
@@ -51,7 +51,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  end
  
  
- assert(ndims((zeros([net.hyperParam.sizeFmInput net.hyperParam.numFmInput])))==ndims(GetNetworkInputs(dataset.I{1},net,1)), 'Error - input does not match network configuration (input size + num FM)');
+ assert(ndims((zeros([net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm])))==ndims(GetNetworkInputs(dataset.I{1},net,1)), 'Error - input does not match network configuration (input size + num FM)');
  
  tic;
  
@@ -83,12 +83,19 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      fprintf('Iter %-3d| Imgs=%-4d',net.runInfoParam.iter,net.runInfoParam.samplesLearned+net.hyperParam.trainLoopCount);
  
      startIter=clock;
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr=0;
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=0;
-     trainErrCnt=0;
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr=0;
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad=0;
+     rmsErrCnt=0;
      %% start training loop
+     BatchSample=zeros([net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm net.hyperParam.batchNum]);
+     bIdx=0;
      for i=1:net.hyperParam.trainLoopCount
-         idx = mod(net.runInfoParam.samplesLearned,length(dataset.I))+1;
+         bIdx=bIdx+1;
+         if (net.hyperParam.randomizeTrainingSamples==1)
+            idx = randi(length(dataset.I));
+         else
+            idx = mod(net.runInfoParam.samplesLearned,length(dataset.I))+1;
+         end
          sample=double(dataset.I{idx});
          label = dataset.labels(idx);
              
@@ -115,28 +122,31 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
              end
  
          end
-         
-         sample = GetNetworkInputs(sample, net, 0);
-         expectedOut=zeros(1,net.layers{end}.properties.numFm);
-         expectedOut(label+1)=1;
+         BatchSample(:,:,:,:,bIdx) = GetNetworkInputs(sample, net, 0);
+         expectedOut(:,bIdx)=zeros(1,net.layers{end-1}.properties.numFm);
+         expectedOut(label+1,bIdx)=1;
 
-         net = backPropegate(net, sample, expectedOut);
          
-         net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad+mean(abs(net.layers{net.properties.lastFCLayer}.dW(:)));
-         net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr=net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr+mean(abs(net.layers{size(net.layers,2)}.error));
-
-         if (net.runInfoParam.batchIdx >= net.hyperParam.batchNum)
-            net = updateWeights(net, net.runInfoParam.iterInfo(end).ni, net.hyperParam.momentum , net.hyperParam.lambda);
+         net.runInfoParam.samplesLearned=net.runInfoParam.samplesLearned+1;
+         if (bIdx<net.hyperParam.batchNum)
+             continue;
          end
+         bIdx=0;
+         net = backPropegate(net, BatchSample, expectedOut);
+         
+         net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad+perfomOnNetDerivatives(net,@(x)(rms(x)));
+         net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr=net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr+rms(net.layers{end}.error(:));
 
-         trainErrCnt=trainErrCnt+1;
+         net = updateWeights(net, net.runInfoParam.iterInfo(end).ni, net.hyperParam.momentum , net.hyperParam.lambda);
+
+         rmsErrCnt=rmsErrCnt+1;
  %%%%%%%%%%%%%%%%%%%%%%%%%%%   NULL checking %%%%%%%%%%%%%%%%%%%%%%
          if ((net.hyperParam.testOnNull==1) && (randi(8)==1))
              %combine 4 edges of images , this is learned as null
              th=0.5;
              stride=6;
-             pointy = randi(stride)-round(stride/2)+floor(net.hyperParam.sizeFmInput(1)/2);
-             pointx = randi(stride)-round(stride/2)+floor(net.hyperParam.sizeFmInput(2)/2);
+             pointy = randi(stride)-round(stride/2)+floor(net.layers{1}.properties.sizeFm(1)/2);
+             pointx = randi(stride)-round(stride/2)+floor(net.layers{1}.properties.sizeFm(2)/2);
              sample = zeros(size(dataset.I{idx}));
              imgIdxs = randi(length(dataset.I),1,4);
              if (rand(1)>th)
@@ -189,10 +199,10 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  %%%%%%%%%%%%%%%%%%%%%%%%%%%   NULL checking %%%%%%%%%%%%%%%%%%%%%%
          if ((net.hyperParam.testOnNull==1) && (net.hyperParam.addBackround==1) && (randi(8)==1))
              backroundImage=backroundImages{randi(length(backroundImages))};
-             starty=randi(1+size(backroundImage,1)-net.hyperParam.sizeFmInput(1));
-             startx=randi(1+size(backroundImage,2)-net.hyperParam.sizeFmInput(2));
+             starty=randi(1+size(backroundImage,1)-net.layers{1}.properties.sizeFm(1));
+             startx=randi(1+size(backroundImage,2)-net.layers{1}.properties.sizeFm(2));
  
-             patch = backroundImage(starty:(starty+net.hyperParam.sizeFmInput(1)-1) ,startx:(startx+net.hyperParam.sizeFmInput(2)-1) );
+             patch = backroundImage(starty:(starty+net.layers{1}.properties.sizeFm(1)-1) ,startx:(startx+net.layers{1}.properties.sizeFm(2)-1) );
              sample = GetNetworkInputs(patch, net, 0);
              expectedOut=zeros(1,net.layers{end}.properties.numFm);
 
@@ -203,22 +213,21 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
              
          end
          
-         net.runInfoParam.samplesLearned=net.runInfoParam.samplesLearned+1;
      end
      endIter=clock;
      
      net.runInfoParam.iterInfo(net.runInfoParam.iter).TrainTime=etime(endIter ,startIter);
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr = net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr/trainErrCnt;	 
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad = net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad/trainErrCnt;	 
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).meanWeights = perfomOnNetWeights(net,@(x)(mean(abs(x))));
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr = net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr/rmsErrCnt;	 
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad = net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad/rmsErrCnt;	 
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsWeights = perfomOnNetWeights(net,@(x)(sqrt(mean(abs(x.^2)))));
      net.runInfoParam.iterInfo(net.runInfoParam.iter).varWeights = perfomOnNetWeights(net,@var);
      
-     fprintf(' | time=%-5.2f | TrainErr=%f | meanGrad=%f | meanWeight=%f | varWeight=%f' ,etime(endIter ,startIter), net.runInfoParam.iterInfo(net.runInfoParam.iter).trainErr, net.runInfoParam.iterInfo(net.runInfoParam.iter).meanGrad, net.runInfoParam.iterInfo(net.runInfoParam.iter).meanWeights, net.runInfoParam.iterInfo(net.runInfoParam.iter).varWeights );
+     fprintf(' | time=%-5.2f | rmsErr=%f | rmsGrad=%f | meanWeight=%f | varWeight=%f' ,etime(endIter ,startIter), net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr, net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad, net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsWeights, net.runInfoParam.iterInfo(net.runInfoParam.iter).varWeights );
  
  
      startTesting=clock;
      %% test testing loop
-     for i=1:net.hyperParam.testImageNum;
+     for i=1:net.hyperParam.testImageNum
          idx=mod(i-1,length(dataset.I_test))+1;
          sample=double(dataset.I_test{idx});
          label = dataset.labels_test(idx);
@@ -227,25 +236,20 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          patchAccumRes=0;
          for patchIdx=1:net.hyperParam.testNumPatches
              patch = GetNetworkInputs(sample, net, 1);
-             outs = feedForward(net.layers, patch , 1);
-             patchAccumRes=patchAccumRes+outs{end}.activation;
+             net = feedForward(net, patch , 1);
+             patchAccumRes=patchAccumRes+net.layers{end}.outs.activation;
          end
 
          patchAccumRes = patchAccumRes/net.hyperParam.testNumPatches;
          
          [~,m] = max(patchAccumRes);
          
-         expectedOut=zeros(1,net.layers{end}.properties.numFm);
+         expectedOut=zeros(net.layers{end}.properties.numFm,1);
          expectedOut(label+1)=1;
          
          res(i) = (m-1==label); %#ok<AGROW>
  
-         if (net.hyperParam.errorMethod==1)
-             eps=1e-20;
-             err(i) = -sum((expectedOut).*log(max(eps,patchAccumRes)) + (1-expectedOut).*log(max(eps,1-patchAccumRes))); %#ok<AGROW>
-         else
-             err(i) = 0.5*sum((expectedOut-patchAccumRes).^2); %#ok<AGROW>
-         end
+         err(i) = net.layers{end}.properties.costFunc(patchAccumRes,expectedOut);
          
          
      end
@@ -342,7 +346,7 @@ function [ ] = printNetwork( net )
  disp(struct2table(net.hyperParam));
  disp(struct2table(net.runInfoParam));
  
- for k=1:size(net.layers,2)
+ for k=2:size(net.layers,2)-1
      fprintf('Layer %d: Activation=%s, dActivation=%s\n',k, func2str(net.layers{k}.properties.Activation) , func2str(net.layers{k}.properties.dActivation));
      disp(struct2table(net.layers{k}.properties));
  end
@@ -355,15 +359,39 @@ end
 function [ res ] = perfomOnNetWeights( net , func)
     weights=[];
     for k=1:size(net.layers,2)
-         if (net.layers{k}.properties.type==1) % is fully connected layer  
+        if (net.layers{k}.properties.numWeights==0)
+            continue
+        end
+         if (net.layers{k}.properties.type==net.types.fc) % is fully connected layer  
              weights=[weights ; net.layers{k}.fcweight(:)]; %#ok<AGROW>
-         elseif (net.layers{k}.properties.type==2)
+         elseif (net.layers{k}.properties.type==net.types.conv)
              for fm=1:length(net.layers{k}.weight)
                  weights=[weights ; net.layers{k}.weight{fm}(:)]; %#ok<AGROW>
              end
+         elseif (net.layers{k}.properties.type==net.types.batchNorm)
+                 weights=[weights ; net.layers{k}.properties.gamma ; net.layers{k}.properties.beta]; %#ok<AGROW>
          end
     end
     res = func(weights);
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [ res ] = perfomOnNetDerivatives( net , func)
+    dW=[];
+    for k=1:size(net.layers,2)
+        if (net.layers{k}.properties.numWeights==0)
+            continue
+        end
+         if (net.layers{k}.properties.type==net.types.fc) % is fully connected layer  
+             dW=[dW ; net.layers{k}.dW(:)]; %#ok<AGROW>
+         elseif (net.layers{k}.properties.type==net.types.conv)
+             for fm=1:length(net.layers{k}.weight)
+                 dW=[dW ; net.layers{k}.dW{fm}(:)]; %#ok<AGROW>
+             end
+         elseif (net.layers{k}.properties.type==net.types.batchNorm)
+                 dW=[dW ; net.layers{k}.dgamma ; net.layers{k}.dbeta]; %#ok<AGROW>
+         end
+    end
+    res = func(dW);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

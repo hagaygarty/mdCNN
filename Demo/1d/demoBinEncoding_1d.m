@@ -30,7 +30,7 @@ end
 net = CreateNet('../../Configs/1d_conv.conf'); % small 1d conv net  
 %net = CreateNet('../../Configs/1d.conf');  % small 1d fully connected net,will converge faster
 
-net   =  Train(dataset,net, 200000);
+net   =  Train(dataset,net, 150000);
 
 checkNetwork(net,Inf,dataset,1);
 

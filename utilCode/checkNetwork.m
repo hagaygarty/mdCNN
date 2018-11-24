@@ -66,8 +66,8 @@ for idx=1:num;
     patchAccumRes=0;
     for patchIdx=1:numPatchesToTest
         patch = GetNetworkInputs(image, nets{1}, 1);
-        outs = feedForward(nets{1}.layers, patch , 1);
-        patchAccumRes=patchAccumRes+outs{end}.activation;
+        nets{1} = feedForward(nets{1}, patch , 1);
+        patchAccumRes=patchAccumRes+nets{1}.layers{end}.outs.activation;
     end
 
     patchAccumRes = patchAccumRes/numPatchesToTest;
@@ -75,7 +75,7 @@ for idx=1:num;
     [M,m] = max(patchAccumRes);
 
          
-    expectedOut=zeros(1,nets{1}.layers{end}.properties.numFm);
+    expectedOut=zeros(nets{1}.layers{end}.properties.numFm,1);
     expectedOut(label+1)=1;
 
     res(idx) = (m-1==label);
@@ -85,11 +85,7 @@ for idx=1:num;
     confMat2(label+1,idx) = 1;
     confMat3(:,idx) = patchAccumRes/sum(patchAccumRes);
 
-    if (nets{1}.hyperParam.errorMethod==1)
-        err(idx) = -sum((expectedOut).*log(patchAccumRes) + (1-expectedOut).*log(1-patchAccumRes)); %#ok<AGROW>
-    else
-        err(idx) = 0.5*sum((expectedOut-patchAccumRes).^2); %#ok<AGROW>
-    end
+    err(idx) = nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut);
     
     if ( res(idx)==0)
         failedCount=failedCount+1;
@@ -134,29 +130,25 @@ for idx=worseMSEIdx
     patchAccumRes=0;
     for patchIdx=1:numPatchesToTest
         patch = GetNetworkInputs(image, nets{1}, 1);
-        outs = feedForward(nets{1}.layers, patch , 1);
-        patchAccumRes=patchAccumRes+outs{end}.activation;
+        nets{1} = feedForward(nets{1}, patch , 1);
+        patchAccumRes=patchAccumRes+nets{1}.layers{end}.outs.activation;
     end
 
     patchAccumRes = patchAccumRes/numPatchesToTest;
 
     [E, sortedOut] = sort(patchAccumRes); %#ok<ASGLU>
 
-    expectedOut=zeros(1,nets{1}.layers{end}.properties.numFm);
+    expectedOut=zeros(nets{1}.layers{end}.properties.numFm,1);
     expectedOut(label+1)=1;
 
-    if (nets{1}.hyperParam.errorMethod==1)
-        MSE = -sum((expectedOut).*log(patchAccumRes) + (1-expectedOut).*log(1-patchAccumRes)); 
-    else
-        MSE = 0.5*sum((expectedOut-patchAccumRes).^2); 
-    end
+    MSE =  nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut);
     
 
     h = subplot(imagePerAxe,imagePerAxe,imgCount);
     axis off
     im = image/max(image(:));
     
-    if ( (nets{1}.properties.InputNumFm==1)&&(sum(nets{1}.properties.sizeInput>1)==3))
+    if ( (nets{1}.layers{1}.properties.numFm==1)&&(sum(nets{1}.layers{1}.properties.sizeFm>1)==3))
         %3d image
         if ( showMiddlePatchOnly==1)
             imshow(im(:,:,round(size(im,3)/2)),'Border','loose');

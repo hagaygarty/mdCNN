@@ -9,23 +9,23 @@ function [ image ] = GetNetworkInputs(image , net , testTime)
 %% preperation can be bias removal , chane to variance 1 , scaling or patch selection , depending on the configuration
 
 
-inputDim = net.hyperParam.sizeFmInput;
-inputDim(end+1) = net.hyperParam.numFmInput;
+inputDim = net.layers{1}.properties.sizeFm;
+inputDim(end+1) = net.layers{1}.properties.numFm;
 
-if ( (inputDim(end-1)==1) && (ndims(image)==3) && (net.hyperParam.numFmInput~=size(image,ndims(image)))) 
+if ( (inputDim(end-1)==1) && (ndims(image)==3) && (net.layers{1}.properties.numFm~=size(image,ndims(image)))) 
     image = rgb2gray(image); %TODO - for color images? color 3d Images??
 end
 
 image=double(image);
-if (net.hyperParam.numFmInput~=1)
+if (net.layers{1}.properties.numFm~=1)
     sz=size(image);
     singleFmDim=[sz(1:end-1) 1 1 1];
     singleFmDim = singleFmDim(1:3);
-    image = reshape(image , [singleFmDim net.hyperParam.numFmInput] );
+    image = reshape(image , [singleFmDim net.layers{1}.properties.numFm] );
 end
 
 if (net.hyperParam.normalizeNetworkInput==1)
-	for fm=1:net.hyperParam.numFmInput
+	for fm=1:net.layers{1}.properties.numFm
 		singleFm=image(:,:,:,fm);
 		singleFm = singleFm-min(singleFm(:));
 		
@@ -74,8 +74,8 @@ if (net.hyperParam.useRandomPatch>0)
     
     while(varImage<net.hyperParam.selevtivePatchVarTh)
         image = origIm;
-       % patchSize=net.hyperParam.sizeFmInput;
-       % patchSize = [patchSize(patchSize>1) net.hyperParam.numFmInput];
+       % patchSize=net.layers{1}.properties.sizeFm;
+       % patchSize = [patchSize(patchSize>1) net.layers{1}.properties.numFm];
 
         patchSize = inputDim(1:3);
         
@@ -123,14 +123,14 @@ if (net.hyperParam.normalizeNetworkInput==1)
 end
 
 if (net.hyperParam.flipImage==1) && (~testTime)
-    for dim=length(find(net.hyperParam.sizeFmInput>1)):-1:1
+    for dim=length(find(net.layers{1}.properties.sizeFm>1)):-1:1
         if (randi(2)==1)
             image = flip(image,dim);
         end
     end
 end
 
-if (net.hyperParam.numFmInput~=1)
+if (net.layers{1}.properties.numFm~=1)
     image = reshape(image , inputDim);
 end
 

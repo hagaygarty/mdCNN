@@ -5,72 +5,90 @@
 
 
 
-function [ outs ] = feedForward(layers, input , testTime)
+function [ net ] = feedForward(net, input , testTime)
 %% feedForward - pass a sample throud the net. Returning an array where the first index is the layer num, second is:
 % 1 - the output of each neuron before activation.
 % 2 - the output of each neuron after activation.
 % 3 - selected dropout matrix
 % 4 - indexes of max pooling (the index of the max value in the pooling section)
 
-outs = cell(size(layers,2),1);
+batchNum=size(input,5);
 
-for k=1:size(layers,2)
-    if (layers{k}.properties.type==0) 
-        %% softmax layer
-        outs{k}.z =exp(input)/sum(exp(input));
-    elseif (layers{k}.properties.type==1) 
-        %% fully connected layer
-        outs{k}.z =[reshape(input, 1,[]) 1] * layers{k}.fcweight;
-    else
-        %% for conv layers
-        if ( ~isempty(find(layers{k}.properties.pad>0, 1)))
-            input = padarray(input, [layers{k}.properties.pad 0], 0 );
-        end
+net.layers{1}.outs.activation = input;
 
-        inputFFT = input;
-        for dim=1:layers{k}.properties.inputDim
-            inputFFT = fft(inputFFT,[],dim);
-        end
-
-        Im=cell([layers{k}.properties.numFm 1]);
-        indexesStride = layers{k}.properties.indexesStride;
-        i1=indexesStride{1};    i2=indexesStride{2};   i3=indexesStride{3};
-        wFFT=layers{k}.weightFFT;  bias=layers{k}.bias;
-        for fm=1:layers{k}.properties.numFm
-            img = ifftn(sum(inputFFT.*wFFT{fm},4),'symmetric');
-            Im{fm} = bias(fm) + img( i1 , i2 , i3 , :);
-        end
-
-        outs{k}.z = cat(4,Im{:});
-
-        if ( ~isempty(find(layers{k}.properties.pooling>1, 1))) %pooling exist
-            elemSize = prod(layers{k}.properties.pooling);
-            poolMat=-Inf+zeros([elemSize layers{k}.properties.numFm*prod(ceil(size(outs{k}.z)./[layers{k}.properties.pooling layers{k}.properties.numFm]))]);
-            poolMat(layers{k}.properties.indexesReshape) = outs{k}.z(layers{k}.properties.indexes);
-
-            [maxVals, maxIdx] = max(poolMat);
-
-            outs{k}.indexes = layers{k}.properties.indexesIncludeOutBounds(maxIdx + layers{k}.properties.offsets); %indexes for fast pooling expansion
-            outs{k}.z = reshape(maxVals , [layers{k}.properties.out layers{k}.properties.numFm]);
-        end
-    end
-    %% do activation + dropout
-    if (k==size(layers,2))
-        outs{k}.activation = layers{k}.properties.Activation(outs{k}.z*layers{k}.properties.dropOut);
-    else
-        if (testTime==1)
-            outs{k}.activation = layers{k}.properties.Activation(outs{k}.z*layers{k}.properties.dropOut);
-        else
-            outs{k}.activation = layers{k}.properties.Activation(outs{k}.z);
-            if (layers{k}.properties.dropOut~=1)
-                outs{k}.dropout = binornd(1,layers{k}.properties.dropOut,size(outs{k}.z)); %set dropout matrix
-                outs{k}.activation = outs{k}.activation.*outs{k}.dropout;
+for k=2:size(net.layers,2)-1
+    input = net.layers{k-1}.outs.activation;
+    
+    switch net.layers{k}.properties.type
+        case net.types.softmax
+            %% softmax layer
+            net.layers{k}.outs.sumExp=repmat(sum(exp(input)),size(input,1),1);
+            net.layers{k}.outs.z =exp(input)./net.layers{k}.outs.sumExp;
+        case net.types.fc
+            %% fully connected layer
+            net.layers{k}.outs.z =net.layers{k}.fcweight.' * [reshape(input, [], batchNum) ; ones(1,batchNum)] ;
+        case net.types.conv
+            %% for conv layers
+            if ( ~isempty(find(net.layers{k}.properties.pad>0, 1)))
+                input = padarray(input, [net.layers{k}.properties.pad 0 0], 0 );
             end
+
+            inputFFT = input;
+            for dim=1:net.layers{k}.properties.inputDim
+                inputFFT = fft(inputFFT,[],dim);
+            end
+
+            Im=cell([net.layers{k}.properties.numFm 1]);
+            indexesStride = net.layers{k}.properties.indexesStride;
+            i1=indexesStride{1};    i2=indexesStride{2};   i3=indexesStride{3};
+            wFFT=net.layers{k}.weightFFT;  bias=net.layers{k}.bias;
+            for fm=1:net.layers{k}.properties.numFm
+                img = sum(inputFFT.*reshape(repmat(wFFT{fm},[ones(1,ndims(wFFT{fm})) batchNum]),size(inputFFT)),4);
+
+                for dim=1:net.layers{k}.properties.inputDim-1
+                    img = ifft(img,[],dim);
+                end
+                img = ifft(img,[],net.layers{k}.properties.inputDim,'symmetric');
+                Im{fm} = bias(fm) + img( i1 , i2 , i3 , : , :);
+            end
+
+            net.layers{k}.outs.z = cat(4,Im{:});
+
+            if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
+                elemSize = prod(net.layers{k}.properties.pooling);
+                szOut=size(net.layers{k}.outs.z);
+                poolMat=-Inf+zeros([elemSize net.layers{k}.properties.numFm*prod(ceil(szOut(1:4)./[net.layers{k}.properties.pooling net.layers{k}.properties.numFm])) batchNum]);
+
+                newIndexes=repmat((0:batchNum-1).',1,length(net.layers{k}.properties.indexes))*numel(net.layers{k}.outs.z)/batchNum + repmat(net.layers{k}.properties.indexes,batchNum,1) ;
+                newIndexesReshape=repmat((0:batchNum-1).',1,length(net.layers{k}.properties.indexesReshape))*numel(poolMat)/batchNum + repmat(net.layers{k}.properties.indexesReshape,batchNum,1);
+                
+                poolMat(newIndexesReshape) = net.layers{k}.outs.z(newIndexes);
+
+                [maxVals, net.layers{k}.outs.maxIdx] = max(poolMat);
+
+                net.layers{k}.outs.z = reshape(maxVals , [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm batchNum]);
+            end
+        case net.types.batchNorm
+            %% batchNorm layer
+            net.layers{k}.outs.batchMean = mean(input(:));
+            net.layers{k}.outs.batchVar  = mean(abs(input(:)-net.layers{k}.outs.batchMean).^2) ;
+            net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)/sqrt(net.layers{k}.outs.batchVar+eps).*net.layers{k}.properties.gamma+net.layers{k}.properties.beta;
+    end
+    
+    %% do activation + dropout
+    if (testTime==1)
+        net.layers{k}.outs.activation = net.layers{k}.properties.Activation(net.layers{k}.outs.z*net.layers{k}.properties.dropOut);
+    else
+        net.layers{k}.outs.activation = net.layers{k}.properties.Activation(net.layers{k}.outs.z);
+        if (net.layers{k}.properties.dropOut~=1)
+            net.layers{k}.outs.dropout = binornd(1,net.layers{k}.properties.dropOut,size(net.layers{k}.outs.z)); %set dropout matrix
+            net.layers{k}.outs.activation = net.layers{k}.outs.activation.*net.layers{k}.outs.dropout;
         end
     end
-   
-    input = outs{k}.activation;
 end
+
+net.layers{end}.outs.activation = net.layers{end-1}.outs.activation; % for loss layer
+
 
 end
 

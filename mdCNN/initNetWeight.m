@@ -4,105 +4,131 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function [ net ] = initNetWeight( net )
-    rng(0);
-    fprintf('multi dimentional CNN , Hagay Garty 2016 | hagaygarty@gmail.com\nInitializing network..\n');
+rng(0);
+fprintf('multi dimentional CNN , Hagay Garty 2016 | hagaygarty@gmail.com\nInitializing network..\n');
+
+%init W
+prevLayerActivation=1; %for input
+net.properties.numWeights = 0;
+assert( net.layers{1}.properties.type==net.types.input, 'Error - first layer must be input layer (type =-2)');
+assert( isequal(net.layers{1}.properties.sizeFm(net.layers{1}.properties.sizeFm>0),net.layers{1}.properties.sizeFm), 'Error - sizeFm cannot have dim 0');
+assert( ((length(net.layers{1}.properties.sizeFm)==1) || (isequal(net.layers{1}.properties.sizeFm(net.layers{1}.properties.sizeFm>1),net.layers{1}.properties.sizeFm))), 'Error - sizeFm cannot have useless 1 dims');
+assert( isfield(net.layers{1}.properties,'numFm'), 'Error - numFm is not defined in first layer. Example: for 32x32 rgb please set to numFm=3');
+assert( isempty(find(net.layers{1}.properties.sizeFm<1, 1)), 'Error - sizeFm must be >=1 for all dimensions');
+assert( ((~isempty(net.layers{1}.properties.sizeFm)) && (length(net.layers{1}.properties.sizeFm)<=3)), 'Error - num of dimensions must be >0 and <=3');
+
+assert( isfield(net.layers{1}.properties,'sizeFm'), 'Error - sizeFm is not defined in hyperParam. Example: for 32x32 rgb please set to [32 32] , numFm=3');
+assert( length(net.layers{1}.properties.sizeFm)<=3, 'Error - sizeFm cannot have more then 3 dimensions');
+
+
+assert( net.layers{end}.properties.type==net.types.regression, 'Error - last layer must be regression layer (type =-1)');
+net.layers{end}.properties.sizeFm = 1;
+
+net.layers{1}.properties.sizeFm = [net.layers{1}.properties.sizeFm 1 1 1];
+net.layers{1}.properties.sizeFm = net.layers{1}.properties.sizeFm(1:3);
+net.layers{1}.properties.numWeights = 0;
+
+
+
+if (isscalar(net.hyperParam.augmentParams.maxStride))
+    net.hyperParam.augmentParams.maxStride = net.hyperParam.augmentParams.maxStride*ones(1,length(net.layers{1}.properties.sizeFm)).*(net.layers{1}.properties.sizeFm>1);
+end
+
+for k=2:size(net.layers,2)-1
+    fprintf('Initializing layer %d\n',k);
     
-    %init W
-    prevLayerActivation=1; %for input
-    net.properties.numWeights = 0;
-    assert( isfield(net.hyperParam,'sizeFmInput'), 'Error - sizeFmInput is not defined in hyperParam. Example: for 32x32 rgb please set to [32 32] , numFmInput=3');
-    assert( length(net.hyperParam.sizeFmInput)<=3, 'Error - sizeFmInput cannot have more then 3 dimensions');
-    assert( isequal(net.hyperParam.sizeFmInput(net.hyperParam.sizeFmInput>0),net.hyperParam.sizeFmInput), 'Error - sizeFmInput cannot have dim 0');
-    assert( ((length(net.hyperParam.sizeFmInput)==1) || (isequal(net.hyperParam.sizeFmInput(net.hyperParam.sizeFmInput>1),net.hyperParam.sizeFmInput))), 'Error - sizeFmInput cannot have useless 1 dims');
-    assert( isfield(net.hyperParam,'numFmInput'), 'Error - numFmInput is not defined in hyperParam. Example: for 32x32 rgb please set to numFmInput=3');
-    assert( isempty(find(net.hyperParam.sizeFmInput<1, 1)), 'Error - sizeFmInput must be >=1 for all dimensions');
-    assert( ((~isempty(net.hyperParam.sizeFmInput)) && (length(net.hyperParam.sizeFmInput)<=3)), 'Error - num of dimensions must be >0 and <=3');
-           
-    net.hyperParam.sizeFmInput = [net.hyperParam.sizeFmInput 1 1 1];
-    net.hyperParam.sizeFmInput = net.hyperParam.sizeFmInput(1:3);
-
-    net.properties.sizeInput  = net.hyperParam.sizeFmInput;
-    net.properties.InputNumFm = net.hyperParam.numFmInput;
-
-    if (isscalar(net.hyperParam.augmentParams.maxStride))
-        net.hyperParam.augmentParams.maxStride = net.hyperParam.augmentParams.maxStride*ones(1,length(net.hyperParam.sizeFmInput)).*(net.hyperParam.sizeFmInput>1);
+    assert( isfield(net.layers{k}.properties,'type')==1, 'Error - missing type definition in layer %d',k);
+    switch net.layers{k}.properties.type
+        case net.types.input
+            assert(false,'Error input layer must be the first layer (%d)\n',k);
+        case net.types.regression
+            assert(false,'Error regression layer must be the last layer (%d)\n',k);
+        case net.types.softmax
+            net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
+            net.layers{k}.properties.Activation=@Unit;
+            net.layers{k}.properties.dActivation=@dUnit;
+        case net.types.fc
+        case net.types.conv
+        case net.types.batchNorm
+            assert( isfield(net.layers{k}.properties,'numFm')==0, 'Error - no need to specify numFm in batchnorm layer, its inherited from previous layer. in layer %d',k);
+            net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
+            net.layers{k}.properties.Activation=@Unit;
+            net.layers{k}.properties.dActivation=@dUnit;
+            if (isfield(net.layers{k}.properties,'gamma')==0)
+                net.layers{k}.properties.gamma=1;
+            end
+            if (isfield(net.layers{k}.properties,'beta')==0)
+                net.layers{k}.properties.beta=0;
+            end
+        otherwise
+            assert(false,'Error - unknown layer type %d in layer %d\n',net.layers{k}.properties.type,k);
     end
-            
-    for k=1:size(net.layers,2)
-        fprintf('Initializing layer %d\n',k);
-        assert( isfield(net.layers{k}.properties,'type')==1, 'Error - missing type definition in layer %d',k);
-        assert( isfield(net.layers{k}.properties,'numFm')==1, 'Error - missing numFM definition in layer %d',k);
-        
-        if (k==1)
-            net.layers{k}.properties.numFmInPrevLayer  = net.hyperParam.numFmInput;            
-            net.layers{k}.properties.sizeFmInPrevLayer = net.hyperParam.sizeFmInput;
-        else
-            net.layers{k}.properties.numFmInPrevLayer  = net.layers{k-1}.properties.numFm;
-            net.layers{k}.properties.sizeFmInPrevLayer = net.layers{k-1}.properties.out;
-        end
-
-        if (isfield(net.layers{k}.properties,'dropOut')==0)
-            net.layers{k}.properties.dropOut=1;
-        end
-        if ( net.layers{k}.properties.type==0)
-            assert(net.layers{k}.properties.numFm==net.layers{k-1}.properties.numFm,'Error in layer %d. softmax layer must have the same number of FM as previous layer',k);
-            net.layers{k}.properties.Activation=@Relu;
-            net.layers{k}.properties.dActivation=@dRelu;
-        end
-        
-        if (isfield(net.layers{k}.properties,'Activation')==0)
-            net.layers{k}.properties.Activation=@Sigmoid;
-        end
-        if (isfield(net.layers{k}.properties,'dActivation')==0)
-            net.layers{k}.properties.dActivation=@dSigmoid;
-        end
-
-        assert(((net.layers{k}.properties.dropOut<=1) &&(net.layers{k}.properties.dropOut>0)) ,'Dropout must be >0 and <=1 in layer %d',k);
-        
-        if ( net.layers{k}.properties.type<=1) % is softmax or fully connected layer
-            net.layers{k}.properties.out = 1;
-        else
-            net.layers{k}.properties.inputDim = sum(net.layers{k}.properties.sizeFmInPrevLayer>1);
+    
+    assert( isfield(net.layers{k}.properties,'numFm')==1, 'Error - missing numFM definition in layer %d',k);
+    
+    
+    if (isfield(net.layers{k}.properties,'dropOut')==0)
+        net.layers{k}.properties.dropOut=1;
+    end
+    
+    if (isfield(net.layers{k}.properties,'Activation')==0)
+        net.layers{k}.properties.Activation=@Sigmoid;
+    end
+    if (isfield(net.layers{k}.properties,'dActivation')==0)
+        net.layers{k}.properties.dActivation=@dSigmoid;
+    end
+    
+    assert(((net.layers{k}.properties.dropOut<=1) &&(net.layers{k}.properties.dropOut>0)) ,'Dropout must be >0 and <=1 in layer %d',k);
+    
+    switch net.layers{k}.properties.type
+        case net.types.softmax
+            net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
+        case net.types.fc
+            net.layers{k}.properties.sizeFm = 1;
+        case net.types.batchNorm
+            net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
+        case net.types.conv
+            net.layers{k}.properties.inputDim = sum(net.layers{k-1}.properties.sizeFm>1);
             assert( ((isfield(net.layers{k}.properties,'pad')==0)    || (length(net.layers{k}.properties.pad)==1)     || (length(net.layers{k}.properties.pad)==net.layers{k}.properties.inputDim) )    , 'Error - pad can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             assert( ((isfield(net.layers{k}.properties,'stride')==0) || (length(net.layers{k}.properties.stride)==1)  || (length(net.layers{k}.properties.stride)==net.layers{k}.properties.inputDim) ) , 'Error - stride can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             assert( ((isfield(net.layers{k}.properties,'pooling')==0)|| (length(net.layers{k}.properties.pooling)==1) || (length(net.layers{k}.properties.pooling)==net.layers{k}.properties.inputDim) ), 'Error - pooling can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             
             if (isfield(net.layers{k}.properties,'stride')==0)
-                net.layers{k}.properties.stride=ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.stride=ones(1,length(net.layers{1}.properties.sizeFm));
             end
             if (isfield(net.layers{k}.properties,'pad')==0)
-                net.layers{k}.properties.pad=zeros(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.pad=zeros(1,length(net.layers{1}.properties.sizeFm));
             end
             if (isfield(net.layers{k}.properties,'pooling')==0)
-                net.layers{k}.properties.pooling=ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.pooling=ones(1,length(net.layers{1}.properties.sizeFm));
             end
             %sanity checks
             assert( isfield(net.layers{k}.properties,'kernel')==1, 'Error - missing kernel definition in layer %d',k);
-
-   
+            
+            
             if (isscalar(net.layers{k}.properties.kernel))
-                net.layers{k}.properties.kernel = net.layers{k}.properties.kernel*ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.kernel = net.layers{k}.properties.kernel*ones(1,length(net.layers{1}.properties.sizeFm));
             end
-            net.layers{k}.properties.kernel = min(net.layers{k}.properties.kernel ,net.hyperParam.sizeFmInput);
-
+            net.layers{k}.properties.kernel = min(net.layers{k}.properties.kernel ,net.layers{1}.properties.sizeFm);
+            
             %pad default settings
             if (isscalar(net.layers{k}.properties.pad))
-                net.layers{k}.properties.pad = net.layers{k}.properties.pad*ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.pad = net.layers{k}.properties.pad*ones(1,length(net.layers{1}.properties.sizeFm));
             end
-            net.layers{k}.properties.pad = net.layers{k}.properties.pad.*(net.hyperParam.sizeFmInput>1);
+            net.layers{k}.properties.pad = net.layers{k}.properties.pad.*(net.layers{1}.properties.sizeFm>1);
             
             %pooling default settings
             if (isscalar(net.layers{k}.properties.pooling))
-                net.layers{k}.properties.pooling = net.layers{k}.properties.pooling*ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.pooling = net.layers{k}.properties.pooling*ones(1,length(net.layers{1}.properties.sizeFm));
             end
-            net.layers{k}.properties.pooling = min(net.layers{k}.properties.pooling ,net.hyperParam.sizeFmInput);
-
+            net.layers{k}.properties.pooling = min(net.layers{k}.properties.pooling ,net.layers{1}.properties.sizeFm);
+            
             %stride default settings
             if (isscalar(net.layers{k}.properties.stride))
-                net.layers{k}.properties.stride = net.layers{k}.properties.stride*ones(1,length(net.hyperParam.sizeFmInput));
+                net.layers{k}.properties.stride = net.layers{k}.properties.stride*ones(1,length(net.layers{1}.properties.sizeFm));
             end
-            net.layers{k}.properties.stride = min(net.layers{k}.properties.stride ,net.hyperParam.sizeFmInput);
-               
+            net.layers{k}.properties.stride = min(net.layers{k}.properties.stride ,net.layers{1}.properties.sizeFm);
+            
             net.layers{k}.properties.stride  = [net.layers{k}.properties.stride 1 1 1];
             net.layers{k}.properties.stride  = net.layers{k}.properties.stride(1:3);
             net.layers{k}.properties.pad     = [net.layers{k}.properties.pad 1 1 1];
@@ -115,113 +141,111 @@ function [ net ] = initNetWeight( net )
             assert( isempty(find(net.layers{k}.properties.stride<1, 1)) , 'Error - stride must be >=1 for all dimensions, layer=%d',k);
             assert( isempty(find(net.layers{k}.properties.pad<0, 1))    , 'Error - pad must be >=0 for all dimensions, layer=%d',k);
             assert( (net.layers{k}.properties.dropOut<=1 && net.layers{k}.properties.dropOut>0), 'Error - dropOut must be >0 and <=1, layer=%d, dropOut=%d',k,net.layers{k}.properties.dropOut);
-            assert( isempty(find(net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad<net.layers{k}.properties.kernel, 1)) , 'Error - kernel too large (%s), must be smaller then prev layer FM size (%s) plus pad (%s), layer=%d',...
-                num2str(net.layers{k}.properties.kernel) , num2str(net.layers{k}.properties.sizeFmInPrevLayer) , num2str(net.layers{k}.properties.pad) ,k );
+            assert( isempty(find(net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad<net.layers{k}.properties.kernel, 1)) , 'Error - kernel too large (%s), must be smaller then prev layer FM size (%s) plus pad (%s), layer=%d',...
+                num2str(net.layers{k}.properties.kernel) , num2str(net.layers{k-1}.properties.sizeFm) , num2str(net.layers{k}.properties.pad) ,k );
             assert( isempty(find(net.layers{k}.properties.pad>=net.layers{k}.properties.kernel, 1)) , 'Error - pad too large (%s), must be smaller then kernel size (%s), layer=%d',...
                 num2str(net.layers{k}.properties.pad),num2str(net.layers{k}.properties.kernel),k);
-
-            [f,~] = log2(net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad);
+            
+            [f,~] = log2(net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad);
             if (~isempty(find(f~=0.5, 1)))
                 warning(['Layer ' num2str(k) ' input plus pad is ' ...
-                    num2str(net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad) ...
-                    ' , not a power of 2. Might reduce speed']);
+                    num2str(net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad) ...
+                    ' , not a power of 2. May reduce speed']);
             end
-            net.layers{k}.properties.out = ceil((floor((net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad-net.layers{k}.properties.kernel)./net.layers{k}.properties.stride)+1)./net.layers{k}.properties.pooling);
-        end
-        
-
-        
-        if (net.layers{k}.properties.type<=1) % is fully connected layer
-            numNewronsInPrevLayer = net.layers{k}.properties.numFmInPrevLayer*prod(net.layers{k}.properties.sizeFmInPrevLayer);
-            numInputs=numNewronsInPrevLayer+1;
-            if (net.layers{k}.properties.type==1)
-                net.properties.lastFCLayer=k;
+            net.layers{k}.properties.sizeFm = ceil((floor((net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad-net.layers{k}.properties.kernel)./net.layers{k}.properties.stride)+1)./net.layers{k}.properties.pooling);
+            
+    end
+    
+    
+    if (net.layers{k}.properties.type~=2) % is fully connected layer
+        numNewronsInPrevLayer = net.layers{k-1}.properties.numFm*prod(net.layers{k-1}.properties.sizeFm);
+        numInputs=numNewronsInPrevLayer+1;
+        if (net.layers{k}.properties.type==1)
             net.layers{k}.fcweight = normrnd(0,1/sqrt(numInputs*prevLayerActivation),numInputs,net.layers{k}.properties.numFm);% add one for bias
             net.layers{k}.momentum = net.layers{k}.fcweight * 0;
             if (~isnan(net.hyperParam.constInitWeight))
                 net.layers{k}.fcweight = net.layers{k}.fcweight*0+net.hyperParam.constInitWeight;
             end
-            net.layers{k}.dW = zeros(size(net.layers{k}.fcweight));
             net.layers{k}.properties.numWeights = numel(net.layers{k}.fcweight);
-            else
-                net.layers{k}.properties.numWeights = 0;
-            end
-            
-        else   % is conv layer
-            net.layers{k}.properties.numWeights = 0;
-            for fm=1:net.layers{k}.properties.numFm
-                for prevFm=1:net.layers{k}.properties.numFmInPrevLayer
-                    numInputs=net.layers{k}.properties.numFmInPrevLayer*prod(net.layers{k}.properties.kernel)+1;
-                    net.layers{k}.weight{fm}(:,:,:,prevFm) = normrnd(0,1/sqrt(numInputs*prevLayerActivation),net.layers{k}.properties.kernel);
-                    net.layers{k}.momentum{fm}(:,:,:,prevFm) = net.layers{k}.weight{fm}(:,:,:,prevFm) * 0;
-                    if (~isnan(net.hyperParam.constInitWeight))
-                        net.layers{k}.weight{fm}(:,:,:,prevFm)   = net.hyperParam.constInitWeight+0*net.layers{k}.weight{fm}(:,:,:,prevFm);
-                    end
-                    
-                    net.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn(flip(flip(flip(net.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad));
-                    net.layers{k}.dW{fm}(:,:,:,prevFm) = zeros(size(net.layers{k}.weight{fm}(:,:,:,prevFm)));
-                    net.layers{k}.properties.numWeights = net.layers{k}.properties.numWeights + numel(net.layers{k}.weight{fm}(:,:,:,prevFm));
+        elseif (net.layers{k}.properties.type==3) %batchnorm
+            net.layers{k}.properties.numWeights = 2;
+        else
+            net.layers{k}.properties.numWeights = 0; % softmax
+        end
+    else   % is conv layer
+        net.layers{k}.properties.numWeights = 0;
+        for fm=1:net.layers{k}.properties.numFm
+            for prevFm=1:net.layers{k-1}.properties.numFm
+                numInputs=net.layers{k-1}.properties.numFm*prod(net.layers{k}.properties.kernel)+1;
+                net.layers{k}.weight{fm}(:,:,:,prevFm) = normrnd(0,1/sqrt(numInputs*prevLayerActivation),net.layers{k}.properties.kernel);
+                net.layers{k}.momentum{fm}(:,:,:,prevFm) = net.layers{k}.weight{fm}(:,:,:,prevFm) * 0;
+                if (~isnan(net.hyperParam.constInitWeight))
+                    net.layers{k}.weight{fm}(:,:,:,prevFm)   = net.hyperParam.constInitWeight+0*net.layers{k}.weight{fm}(:,:,:,prevFm);
                 end
+                
+                net.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn(flip(flip(flip(net.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad));
+                net.layers{k}.properties.numWeights = net.layers{k}.properties.numWeights + numel(net.layers{k}.weight{fm}(:,:,:,prevFm));
             end
-            fftWeightFlipped = conj(fftn(net.layers{k}.weight{1}(:,:,:,1) , (net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad)));
-            net.layers{k}.flipMat = repmat(fftWeightFlipped./net.layers{k}.weightFFT{1}(:,:,:,1) , [1 1 1 net.layers{k}.properties.numFmInPrevLayer]);
+        end
+        fftWeightFlipped = conj(fftn(net.layers{k}.weight{1}(:,:,:,1) , (net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad)));
+        net.layers{k}.flipMat = repmat(fftWeightFlipped./net.layers{k}.weightFFT{1}(:,:,:,1) , [1 1 1 net.layers{k-1}.properties.numFm]);
+        
+        %bias val
+        numInputs=net.layers{k-1}.properties.numFm*prod(net.layers{k}.properties.kernel)+1;
+        net.layers{k}.bias = normrnd(0,1/sqrt(numInputs*prevLayerActivation),net.layers{k}.properties.numFm,1);% add one for bias
+        if (~isnan(net.hyperParam.constInitWeight))
+            net.layers{k}.bias = net.hyperParam.constInitWeight+0*net.layers{k}.bias;
+        end
+        net.layers{k}.momentumBias = net.layers{k}.bias * 0 ;
+        net.layers{k}.properties.numWeights = net.layers{k}.properties.numWeights + numel(net.layers{k}.bias);
+        
+        
+        %%%%%% stride looksups , the below is used to speed performance
+        for dim=1:3
+            net.layers{k}.properties.indexesStride{dim} = net.layers{k}.properties.kernel(dim):net.layers{k}.properties.stride(dim):(net.layers{k-1}.properties.sizeFm(dim)+2*net.layers{k}.properties.pad(dim));
+        end
+        
+        %%%%%% pooling looksups , the below is nasty code:) but done only during initialization
+        if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
+            net.layers{k}.properties.indexes=[];
+            net.layers{k}.properties.indexesIncludeOutBounds=[];
+            net.layers{k}.properties.indexesReshape=[];
             
-            %bias val
-            numInputs=net.layers{k}.properties.numFmInPrevLayer*prod(net.layers{k}.properties.kernel)+1;
-            net.layers{k}.bias = normrnd(0,1/sqrt(numInputs*prevLayerActivation),1,net.layers{k}.properties.numFm);% add one for bias   
-            net.layers{k}.biasdW = zeros(size(net.layers{k}.bias));
-            if (~isnan(net.hyperParam.constInitWeight))
-                net.layers{k}.bias = net.hyperParam.constInitWeight+0*net.layers{k}.bias;
-            end
-            net.layers{k}.momentumBias = net.layers{k}.bias * 0 ;
-            net.layers{k}.properties.numWeights = net.layers{k}.properties.numWeights + numel(net.layers{k}.bias);
-
-            
-            %%%%%% stride looksups , the below is used to speed performance
-            for dim=1:3
-                net.layers{k}.properties.indexesStride{dim} = net.layers{k}.properties.kernel(dim):net.layers{k}.properties.stride(dim):(net.layers{k}.properties.sizeFmInPrevLayer(dim)+2*net.layers{k}.properties.pad(dim));
-            end
-            
-            %%%%%% pooling looksups , the below is nasty code:) but done only during initialization
-            if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
-                net.layers{k}.properties.indexes=[];
-                net.layers{k}.properties.indexesIncludeOutBounds=[];
-                net.layers{k}.properties.indexesReshape=[];
-
-                elemSize = prod(net.layers{k}.properties.pooling);
-                net.layers{k}.properties.offsets = ((1:(prod([net.layers{k}.properties.out net.layers{k}.properties.numFm]))) -1 )*elemSize;
-                %init some indexes for optimized access during
-                %feedForward/Backprop
-                ranges=floor((net.layers{k}.properties.sizeFmInPrevLayer+2*net.layers{k}.properties.pad-net.layers{k}.properties.kernel)./net.layers{k}.properties.stride)+1;
-                for fm=1:net.layers{k}.properties.numFm
-                    for row=1:prod(net.layers{k}.properties.out)
-                        [y,x,z] = ind2sub(net.layers{k}.properties.out, row);
-                        for col=1:prod(net.layers{k}.properties.pooling)
-                            [yy,xx,zz] = ind2sub(net.layers{k}.properties.pooling, col);
-                            net.layers{k}.properties.indexesIncludeOutBounds(end+1) = (fm-1)      *prod(ranges(1:3)) +...
-                                ((zz-1)+(z-1)*net.layers{k}.properties.pooling(3))*prod(ranges(1:2)) +...
-                                ((xx-1)+(x-1)*net.layers{k}.properties.pooling(2))*prod(ranges(1:1)) +...
-                                ((yy-1)+(y-1)*net.layers{k}.properties.pooling(1)) + ...
-                                1;
-                            if ( isempty(find( ...
+            elemSize = prod(net.layers{k}.properties.pooling);
+            net.layers{k}.properties.offsets = ((1:(prod([net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm]))) -1 )*elemSize;
+            %init some indexes for optimized access during
+            %feedForward/Backprop
+            ranges=floor((net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad-net.layers{k}.properties.kernel)./net.layers{k}.properties.stride)+1;
+            for fm=1:net.layers{k}.properties.numFm
+                for row=1:prod(net.layers{k}.properties.sizeFm)
+                    [y,x,z] = ind2sub(net.layers{k}.properties.sizeFm, row);
+                    for col=1:prod(net.layers{k}.properties.pooling)
+                        [yy,xx,zz] = ind2sub(net.layers{k}.properties.pooling, col);
+                        net.layers{k}.properties.indexesIncludeOutBounds(end+1) = (fm-1)      *prod(ranges(1:3)) +...
+                            ((zz-1)+(z-1)*net.layers{k}.properties.pooling(3))*prod(ranges(1:2)) +...
+                            ((xx-1)+(x-1)*net.layers{k}.properties.pooling(2))*prod(ranges(1:1)) +...
+                            ((yy-1)+(y-1)*net.layers{k}.properties.pooling(1)) + ...
+                            1;
+                        if ( isempty(find( ...
                                 ((([yy xx zz]-1)+([y x z]-1).*net.layers{k}.properties.pooling)+1) > ranges, 1 )))
-                                net.layers{k}.properties.indexes(end+1) = net.layers{k}.properties.indexesIncludeOutBounds(end);
-                                net.layers{k}.properties.indexesReshape(end+1) = (col-1) + (row+(fm-1)*prod(net.layers{k}.properties.out)-1)*prod(net.layers{k}.properties.pooling) + 1;
-                            end
+                            net.layers{k}.properties.indexes(end+1) = net.layers{k}.properties.indexesIncludeOutBounds(end);
+                            net.layers{k}.properties.indexesReshape(end+1) = (col-1) + (row+(fm-1)*prod(net.layers{k}.properties.sizeFm)-1)*prod(net.layers{k}.properties.pooling) + 1;
                         end
                     end
                 end
-             end
+            end
         end
-
-        net.properties.numWeights = net.properties.numWeights + net.layers{k}.properties.numWeights;
-        prevLayerActivation = net.layers{k}.properties.dropOut;
     end
-	
-	assert(net.layers{end}.properties.type<=1,'Last layer must be FC layer or softmax layer');
-	assert(net.layers{end}.properties.dropOut==1,'Last layer must be with dropout=1');
-
-    assert( ~( (net.hyperParam.errorMethod==1) && (net.layers{end}.properties.type~=0) && ((net.layers{end}.properties.Activation(-10)<=0) || (net.layers{end}.properties.Activation(10)>=1))),'Error - when using cross entropy the activation function of the last layer must be bigger then zero and smaller then 1');
     
+    net.properties.numWeights = net.properties.numWeights + net.layers{k}.properties.numWeights;
+    prevLayerActivation = net.layers{k}.properties.dropOut;
+end
+
+net.layers{end}.properties.numFm = net.layers{end-1}.properties.numFm;
+net.layers{end}.properties.numWeights = 0;
+
+assert((net.layers{end-1}.properties.type==net.types.fc) || (net.layers{end-1}.properties.type==net.types.softmax) ,'Last layer must be FC layer or softmax layer');
+assert(net.layers{end-1}.properties.dropOut==1,'Last layer must be with dropout=1');
+
 end
 
