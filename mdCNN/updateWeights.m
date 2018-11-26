@@ -9,13 +9,13 @@ function [ net ] = updateWeights(net, ni, momentum , lambda )
 
 %update network weights
 for k=size(net.layers,2)-1:-1:2
-    if (net.layers{k}.properties.type==0) % is softmax layer
+    if (isequal(net.layers{k}.properties.type,net.types.softmax)) % is softmax layer
         continue;
     end
-    if (net.layers{k}.properties.type==3) % is batchnorm layer
+    if (isequal(net.layers{k}.properties.type,net.types.batchNorm)) % is batchnorm layer
         net.layers{k}.properties.gamma = net.layers{k}.properties.gamma - ni*net.layers{k}.dgamma;
         net.layers{k}.properties.beta  = net.layers{k}.properties.beta  - ni*net.layers{k}.dbeta;
-    elseif (net.layers{k}.properties.type==1) % is fully connected layer
+    elseif (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer
         if (lambda~=0)
             weightDecay = ones(size(net.layers{k}.fcweight));
             weightDecay(1:(end-1),:) = (1-lambda*ni);%do not decay bias

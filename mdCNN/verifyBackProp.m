@@ -32,10 +32,10 @@ numIter=1;
 startVerification=clock;
 
 for k=2:size(net.layers,2)-1
-    if (net.layers{k}.properties.type==net.types.softmax)
+    if (isequal(net.layers{k}.properties.type,net.types.softmax))
         continue;
     end
-    if (net.layers{k}.properties.type==net.types.batchNorm)
+    if (isequal(net.layers{k}.properties.type,net.types.batchNorm))
         continue;
     end
     
@@ -55,14 +55,14 @@ for k=2:size(net.layers,2)-1
     
     
     for fm=1:net.layers{k}.properties.numFm
-        if (net.layers{k}.properties.type==net.types.fc)
+        if (isequal(net.layers{k}.properties.type,net.types.fc))
             numprevFm = 1;
         else
             numprevFm = size(net.layers{k}.weight{1},4);
         end
         for prevFm=1:numprevFm
             for iter=1:numIter
-                if (net.layers{k}.properties.type==net.types.fc)
+                if (isequal(net.layers{k}.properties.type,net.types.fc))
                     y=randi(size(net.layers{k}.fcweight,1));
                     x=randi(size(net.layers{k}.fcweight,2));
                     calculatedDcDw = net.layers{k}.dW(y,x);
@@ -75,7 +75,7 @@ for k=2:size(net.layers,2)-1
                 
                 rng(seed);%to set the same dropout each time..
                 net = feedForward(net, input, 0);
-                if (net.layers{k}.properties.type==net.types.fc)
+                if (isequal(net.layers{k}.properties.type,net.types.fc))
                     net.layers{k}.fcweight(y,x) = net.layers{k}.fcweight(y,x) + dw;
                 else
                     net.layers{k}.weight{fm}(y,x,z,prevFm) = net.layers{k}.weight{fm}(y,x,z,prevFm) + dw;
@@ -84,7 +84,7 @@ for k=2:size(net.layers,2)-1
                 
                 rng(seed);%to set the same dropout each time..
                 netPdW =  feedForward(net, input, 0);
-                if (net.layers{k}.properties.type==net.types.fc)
+                if (isequal(net.layers{k}.properties.type,net.types.fc))
                     net.layers{k}.fcweight(y,x) = net.layers{k}.fcweight(y,x) - dw;
                 else
                     net.layers{k}.weight{fm}(y,x,z,prevFm) = net.layers{k}.weight{fm}(y,x,z,prevFm) - dw;
@@ -109,7 +109,7 @@ end
 
 %check bias weight
 for k=2:size(net.layers,2)-1
-    if (net.layers{k}.properties.type~=net.types.conv) % only for conv
+    if (~isequal(net.layers{k}.properties.type,net.types.conv)) % not for conv
         continue;
     end
     

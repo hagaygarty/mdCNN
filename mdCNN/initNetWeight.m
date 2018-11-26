@@ -10,7 +10,7 @@ fprintf('multi dimentional CNN , Hagay Garty 2016 | hagaygarty@gmail.com\nInitia
 %init W
 prevLayerActivation=1; %for input
 net.properties.numWeights = 0;
-assert( net.layers{1}.properties.type==net.types.input, 'Error - first layer must be input layer (type =-2)');
+assert( isequal(net.layers{1}.properties.type,net.types.input), 'Error - first layer must be input layer (type =-2)');
 assert( isequal(net.layers{1}.properties.sizeFm(net.layers{1}.properties.sizeFm>0),net.layers{1}.properties.sizeFm), 'Error - sizeFm cannot have dim 0');
 assert( ((length(net.layers{1}.properties.sizeFm)==1) || (isequal(net.layers{1}.properties.sizeFm(net.layers{1}.properties.sizeFm>1),net.layers{1}.properties.sizeFm))), 'Error - sizeFm cannot have useless 1 dims');
 assert( isfield(net.layers{1}.properties,'numFm'), 'Error - numFm is not defined in first layer. Example: for 32x32 rgb please set to numFm=3');
@@ -21,7 +21,7 @@ assert( isfield(net.layers{1}.properties,'sizeFm'), 'Error - sizeFm is not defin
 assert( length(net.layers{1}.properties.sizeFm)<=3, 'Error - sizeFm cannot have more then 3 dimensions');
 
 
-assert( net.layers{end}.properties.type==net.types.regression, 'Error - last layer must be regression layer (type =-1)');
+assert( isequal(net.layers{end}.properties.type,net.types.regression), 'Error - last layer must be regression layer (type =-1)');
 net.layers{end}.properties.sizeFm = 1;
 
 net.layers{1}.properties.sizeFm = [net.layers{1}.properties.sizeFm 1 1 1];
@@ -34,15 +34,14 @@ if (isscalar(net.hyperParam.augmentParams.maxStride))
     net.hyperParam.augmentParams.maxStride = net.hyperParam.augmentParams.maxStride*ones(1,length(net.layers{1}.properties.sizeFm)).*(net.layers{1}.properties.sizeFm>1);
 end
 
-for k=2:size(net.layers,2)-1
+for k=1:size(net.layers,2)
     fprintf('Initializing layer %d\n',k);
     
     assert( isfield(net.layers{k}.properties,'type')==1, 'Error - missing type definition in layer %d',k);
     switch net.layers{k}.properties.type
         case net.types.input
-            assert(false,'Error input layer must be the first layer (%d)\n',k);
-        case net.types.regression
-            assert(false,'Error regression layer must be the last layer (%d)\n',k);
+            assert(k==1,'Error input layer must be the first layer (%d)\n',k);
+            continue;
         case net.types.softmax
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
             net.layers{k}.properties.Activation=@Unit;
@@ -60,6 +59,9 @@ for k=2:size(net.layers,2)-1
             if (isfield(net.layers{k}.properties,'beta')==0)
                 net.layers{k}.properties.beta=0;
             end
+        case net.types.regression
+            assert(k==size(net.layers,2),'Error - regression layer must be the last layer, layer (%d)\n',k);
+            continue;
         otherwise
             assert(false,'Error - unknown layer type %d in layer %d\n',net.layers{k}.properties.type,k);
     end
@@ -157,17 +159,17 @@ for k=2:size(net.layers,2)-1
     end
     
     
-    if (net.layers{k}.properties.type~=2) % is fully connected layer
+    if (~isequal(net.layers{k}.properties.type,net.types.conv)) % not conv
         numNewronsInPrevLayer = net.layers{k-1}.properties.numFm*prod(net.layers{k-1}.properties.sizeFm);
         numInputs=numNewronsInPrevLayer+1;
-        if (net.layers{k}.properties.type==1)
+        if (isequal(net.layers{k}.properties.type,net.types.fc))
             net.layers{k}.fcweight = normrnd(0,1/sqrt(numInputs*prevLayerActivation),numInputs,net.layers{k}.properties.numFm);% add one for bias
             net.layers{k}.momentum = net.layers{k}.fcweight * 0;
             if (~isnan(net.hyperParam.constInitWeight))
                 net.layers{k}.fcweight = net.layers{k}.fcweight*0+net.hyperParam.constInitWeight;
             end
             net.layers{k}.properties.numWeights = numel(net.layers{k}.fcweight);
-        elseif (net.layers{k}.properties.type==3) %batchnorm
+        elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm)) %batchnorm
             net.layers{k}.properties.numWeights = 2;
         else
             net.layers{k}.properties.numWeights = 0; % softmax
@@ -244,7 +246,7 @@ end
 net.layers{end}.properties.numFm = net.layers{end-1}.properties.numFm;
 net.layers{end}.properties.numWeights = 0;
 
-assert((net.layers{end-1}.properties.type==net.types.fc) || (net.layers{end-1}.properties.type==net.types.softmax) ,'Last layer must be FC layer or softmax layer');
+assert(   isequal(net.layers{end-1}.properties.type,net.types.fc)  || isequal(net.layers{end-1}.properties.type,net.types.softmax) ,'Last layer must be FC layer or softmax layer');
 assert(net.layers{end-1}.properties.dropOut==1,'Last layer must be with dropout=1');
 
 end

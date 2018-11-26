@@ -346,8 +346,15 @@ function [ ] = printNetwork( net )
  disp(struct2table(net.hyperParam));
  disp(struct2table(net.runInfoParam));
  
- for k=2:size(net.layers,2)-1
-     fprintf('Layer %d: Activation=%s, dActivation=%s\n',k, func2str(net.layers{k}.properties.Activation) , func2str(net.layers{k}.properties.dActivation));
+ for k=1:size(net.layers,2)
+     fprintf('Layer %d: ',k);
+     if (isfield(net.layers{k}.properties,'Activation'))
+        fprintf('Activation=%s, dActivation=%s\n', func2str(net.layers{k}.properties.Activation) , func2str(net.layers{k}.properties.dActivation));
+     elseif (isfield(net.layers{k}.properties,'lossFunc'))
+        fprintf('lossFunc=%s, costFunc=%s\n', func2str(net.layers{k}.properties.lossFunc) , func2str(net.layers{k}.properties.costFunc));
+     else
+        fprintf('\n');
+     end
      disp(struct2table(net.layers{k}.properties));
  end
  
@@ -362,13 +369,13 @@ function [ res ] = perfomOnNetWeights( net , func)
         if (net.layers{k}.properties.numWeights==0)
             continue
         end
-         if (net.layers{k}.properties.type==net.types.fc) % is fully connected layer  
+         if (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer  
              weights=[weights ; net.layers{k}.fcweight(:)]; %#ok<AGROW>
-         elseif (net.layers{k}.properties.type==net.types.conv)
+         elseif (isequal(net.layers{k}.properties.type,net.types.conv))
              for fm=1:length(net.layers{k}.weight)
                  weights=[weights ; net.layers{k}.weight{fm}(:)]; %#ok<AGROW>
              end
-         elseif (net.layers{k}.properties.type==net.types.batchNorm)
+         elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm))
                  weights=[weights ; net.layers{k}.properties.gamma ; net.layers{k}.properties.beta]; %#ok<AGROW>
          end
     end
@@ -381,13 +388,13 @@ function [ res ] = perfomOnNetDerivatives( net , func)
         if (net.layers{k}.properties.numWeights==0)
             continue
         end
-         if (net.layers{k}.properties.type==net.types.fc) % is fully connected layer  
+         if (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer  
              dW=[dW ; net.layers{k}.dW(:)]; %#ok<AGROW>
-         elseif (net.layers{k}.properties.type==net.types.conv)
+         elseif (isequal(net.layers{k}.properties.type,net.types.conv))
              for fm=1:length(net.layers{k}.weight)
                  dW=[dW ; net.layers{k}.dW{fm}(:)]; %#ok<AGROW>
              end
-         elseif (net.layers{k}.properties.type==net.types.batchNorm)
+         elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm))
                  dW=[dW ; net.layers{k}.dgamma ; net.layers{k}.dbeta]; %#ok<AGROW>
          end
     end
