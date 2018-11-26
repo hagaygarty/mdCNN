@@ -30,7 +30,7 @@ for k=1:size(net.layers,2)-1
     end
     layerMin = Inf; layerMax = -Inf;
     for fm=1:min(imagePerXAxe,net.layers{k}.properties.numFm)
-        if (net.layers{k}.properties.type==1) % is fully connected layer
+        if (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer
             im = net.layers{k}.outs.z(fm);        
         else
             im =  net.layers{k}.outs.z(:,:,fm);        
@@ -40,7 +40,7 @@ for k=1:size(net.layers,2)-1
     end
     
     for fm=1:min(imagePerXAxe,net.layers{k}.properties.numFm)
-         if ( net.layers{k}.properties.type==1) % is fully connected layer
+         if ( isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer
             im =  net.layers{k}.outs.z(fm);        
          else
             im =  net.layers{k}.outs.z(:,:,fm);        
