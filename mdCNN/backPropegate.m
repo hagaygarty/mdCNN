@@ -50,7 +50,7 @@ for k=size(net.layers,2)-1:-1:2
             %expand with pooling
             if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
                 nextErrors = zeros([floor((net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad-net.layers{k}.properties.kernel)./net.layers{k}.properties.stride)+1 net.layers{k}.properties.numFm batchNum]);
-                indexes = repmat((0:batchNum-1),length(net.layers{k}.properties.offsets),1)*numel(nextErrors)/batchNum + net.layers{k}.properties.indexesIncludeOutBounds(squeeze(net.layers{k}.outs.maxIdx) + repmat(net.layers{k}.properties.offsets.',1,batchNum)); %indexes for fast pooling expansion
+                indexes = reshape(repmat((0:batchNum-1),length(net.layers{k}.properties.offsets),1),1,length(net.layers{k}.properties.offsets),batchNum)*numel(nextErrors)/batchNum + (net.layers{k}.properties.indexesIncludeOutBounds(net.layers{k}.outs.maxIdx + repmat(net.layers{k}.properties.offsets,1,1,batchNum) )); %indexes for fast pooling expansion
                 nextErrors(indexes) = net.layers{k}.error;
                 net.layers{k}.error = nextErrors;
             end
