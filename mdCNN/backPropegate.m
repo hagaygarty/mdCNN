@@ -38,14 +38,14 @@ for k=size(net.layers,2)-1:-1:2
             expActivation=exp(net.layers{k-1}.outs.activation);
             net.layers{k}.error =(net.layers{k}.outs.sumExp.*net.layers{k}.error-repmat(sum(expActivation.*net.layers{k}.error),size(net.layers{k}.outs.sumExp,1),1)).*expActivation./net.layers{k}.outs.sumExp.^2;
         case net.types.fc
-            net.layers{k}.dW = [reshape(net.layers{k-1}.outs.activation, [], batchNum) ; ones(1,batchNum) ]*net.layers{k}.error.' / batchNum;
+            net.layers{k}.dW = [reshape(net.layers{k-1}.outs.activation, [], batchNum) ; ones(1,batchNum) ]*net.layers{k}.error.' ;
             net.layers{k}.error = net.layers{k}.fcweight(1:(end-1),:)*net.layers{k}.error;
         case net.types.batchNorm
-            N = numel(net.layers{k+1}.error);
-            Xh = (net.layers{k-1}.outs.activation-net.layers{k}.outs.batchMean)/sqrt(net.layers{k}.outs.batchVar);
-            net.layers{k}.dbeta  = sum(net.layers{k}.error(:));
-            net.layers{k}.dgamma = sum(net.layers{k}.error(:).*Xh(:));
-            net.layers{k}.error  = net.layers{k}.properties.gamma./sqrt(net.layers{k}.outs.batchVar)/N * (N*reshape(net.layers{k}.error,size(Xh))- net.layers{k}.dgamma.*Xh - net.layers{k}.dbeta);
+            N = numel(net.layers{k+1}.error)/numel(net.layers{k}.outs.batchMean);
+            Xh = (net.layers{k-1}.outs.activation-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar);
+            net.layers{k}.dbeta  = sum(net.layers{k}.error,5);
+            net.layers{k}.dgamma = sum(net.layers{k}.error.*Xh,5);
+            net.layers{k}.error  = net.layers{k}.gamma./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar)/N .* (N*reshape(net.layers{k}.error,size(Xh))- net.layers{k}.dgamma.*Xh - net.layers{k}.dbeta);
         case net.types.conv
             %expand with pooling
             if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
@@ -56,7 +56,7 @@ for k=size(net.layers,2)-1:-1:2
             end
             
             % update weights
-            net.layers{k}.biasdW = squeeze(mean(sum(sum(sum(net.layers{k}.error,1),2),3),5));
+            net.layers{k}.biasdW = squeeze(sum(sum(sum(sum(net.layers{k}.error,1),2),3),5));
             
             prevLayerOutput = net.layers{k-1}.outs.activation;
             if ( ~isempty(find(net.layers{k}.properties.pad>0, 1)))
@@ -82,7 +82,7 @@ for k=size(net.layers,2)-1:-1:2
                     im = ifft(im,[],dim);
                 end
                 im=real(im);
-                net.layers{k}.dW{fm} = mean ( im( (end-(szPrevOutput(1)-szOutput(1))):end , (end-(szPrevOutput(2)-szOutput(2))):end , (end-(szPrevOutput(3)-szOutput(3))):end , : ,:), 5);
+                net.layers{k}.dW{fm} = sum ( im( (end-(szPrevOutput(1)-szOutput(1))):end , (end-(szPrevOutput(2)-szOutput(2))):end , (end-(szPrevOutput(3)-szOutput(3))):end , : ,:), 5);
             end
             
             if (net.properties.skipLastLayerErrorCalc==0) || (k>2) % to save cycles no need to propogate to input layer

@@ -35,9 +35,8 @@ if (isscalar(net.hyperParam.augmentParams.maxStride))
 end
 
 for k=1:size(net.layers,2)
-    fprintf('Initializing layer %d\n',k);
-    
     assert( isfield(net.layers{k}.properties,'type')==1, 'Error - missing type definition in layer %d',k);
+    fprintf('Initializing layer %d - %s\n',k,net.layers{k}.properties.type);
     switch net.layers{k}.properties.type
         case net.types.input
             assert(k==1,'Error input layer must be the first layer (%d)\n',k);
@@ -50,15 +49,29 @@ for k=1:size(net.layers,2)
         case net.types.conv
         case net.types.batchNorm
             assert( isfield(net.layers{k}.properties,'numFm')==0, 'Error - no need to specify numFm in batchnorm layer, its inherited from previous layer. in layer %d',k);
+            assert( net.hyperParam.batchNum>=2, 'Error - cannot use batch norm layer if batchSize<2. in layer %d',k);
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
             net.layers{k}.properties.Activation=@Unit;
             net.layers{k}.properties.dActivation=@dUnit;
-            if (isfield(net.layers{k}.properties,'gamma')==0)
-                net.layers{k}.properties.gamma=1;
+            net.layers{k}.EPS=1e-9;
+            if (isfield(net.layers{k}.properties,'initGamma')==0)
+                net.layers{k}.properties.initGamma = 1;
             end
-            if (isfield(net.layers{k}.properties,'beta')==0)
-                net.layers{k}.properties.beta=0;
+            net.layers{k}.gamma=net.layers{k}.properties.initGamma * ones([net.layers{k-1}.properties.sizeFm net.layers{k-1}.properties.numFm]);
+            
+            if (isfield(net.layers{k}.properties,'initBeta')==0)
+                net.layers{k}.properties.initBeta = 0;
             end
+            net.layers{k}.beta=net.layers{k}.properties.initBeta * ones([net.layers{k-1}.properties.sizeFm net.layers{k-1}.properties.numFm]);
+
+            net.layers{k}.properties.numWeights = numel(net.layers{k}.gamma)+numel(net.layers{k}.beta);
+            
+            if (isfield(net.layers{k}.properties,'alpha')==0)
+                net.layers{k}.properties.alpha=2^-5;
+            end
+            assert( (net.layers{k}.properties.alpha<=1)&&(net.layers{k}.properties.alpha>=0),'alpha must be in the range [0 .. 1], layer %d\n',k);
+            net.layers{k}.outs.runningBatchMean = [];
+            net.layers{k}.outs.runningBatchVar = [];
         case net.types.regression
             assert(k==size(net.layers,2),'Error - regression layer must be the last layer, layer (%d)\n',k);
             continue;
@@ -90,7 +103,7 @@ for k=1:size(net.layers,2)
         case net.types.batchNorm
             net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
         case net.types.conv
-            net.layers{k}.properties.inputDim = sum(net.layers{k-1}.properties.sizeFm>1);
+            net.layers{k}.properties.inputDim = max(1,sum(net.layers{k-1}.properties.sizeFm>1));
             assert( ((isfield(net.layers{k}.properties,'pad')==0)    || (length(net.layers{k}.properties.pad)==1)     || (length(net.layers{k}.properties.pad)==net.layers{k}.properties.inputDim) )    , 'Error - pad can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             assert( ((isfield(net.layers{k}.properties,'stride')==0) || (length(net.layers{k}.properties.stride)==1)  || (length(net.layers{k}.properties.stride)==net.layers{k}.properties.inputDim) ) , 'Error - stride can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             assert( ((isfield(net.layers{k}.properties,'pooling')==0)|| (length(net.layers{k}.properties.pooling)==1) || (length(net.layers{k}.properties.pooling)==net.layers{k}.properties.inputDim) ), 'Error - pooling can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
@@ -170,7 +183,7 @@ for k=1:size(net.layers,2)
             end
             net.layers{k}.properties.numWeights = numel(net.layers{k}.fcweight);
         elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm)) %batchnorm
-            net.layers{k}.properties.numWeights = 2;
+           
         else
             net.layers{k}.properties.numWeights = 0; % softmax
         end

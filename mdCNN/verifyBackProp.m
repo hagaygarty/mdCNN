@@ -31,13 +31,62 @@ numIter=1;
 
 startVerification=clock;
 
+Cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
+
+%check beta/gamma
+for k=2:size(net.layers,2)-1
+    if (~isequal(net.layers{k}.properties.type,net.types.batchNorm))
+        continue;
+    end
+    for fm=1:net.layers{k}.properties.numFm
+        
+        for iter=1:numIter
+            y=randi(size(net.layers{k}.dbeta,1));
+            x=randi(size(net.layers{k}.dbeta,2));
+            z=randi(size(net.layers{k}.dbeta,3));
+            calculatedDcDbeta = net.layers{k}.dbeta(y,x,z,fm);
+            calculatedDcDGamma = net.layers{k}.dgamma(y,x,z,fm);
+        end
+        
+        % check beta
+        netVerify       =  net;
+        netVerify.layers{k}.beta(y,x,z,fm) = netVerify.layers{k}.beta(y,x,z,fm) + dw;
+        rng(seed);%to set the same dropout each time..
+        netPdW =  feedForward(netVerify, input, 0);
+        
+        
+        CostPlusDbeta = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
+        
+        estimatedDcDbeta = (CostPlusDbeta-Cost)/dw;
+        
+        diff = sum(estimatedDcDbeta)-calculatedDcDbeta;
+        if ( abs(diff) > th)
+            assert(0,'problem in beta gradient');
+        end
+        
+        % check gamma
+        netVerify       =  net;
+        netVerify.layers{k}.gamma(y,x,z,fm) = netVerify.layers{k}.gamma(y,x,z,fm) + dw;
+        rng(seed);%to set the same dropout each time..
+        netPdW =  feedForward(netVerify, input, 0);
+        
+        CostPlusDGamma = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
+        
+        estimatedDcDgamma = (CostPlusDGamma-Cost)/dw;
+        
+        diff = sum(estimatedDcDgamma)-calculatedDcDGamma;
+        if ( abs(diff) > th)
+            assert(0,'problem in gamma gradient');
+        end
+    end
+end
+
+
 for k=2:size(net.layers,2)-1
     if (isequal(net.layers{k}.properties.type,net.types.softmax))
         continue;
     end
-    if (isequal(net.layers{k}.properties.type,net.types.batchNorm))
-        continue;
-    end
+    
     
     estimateddActivation = (net.layers{k}.properties.Activation(1+dw)-net.layers{k}.properties.Activation(1))/dw;
     realdActivation = net.layers{k}.properties.dActivation(1);
@@ -53,6 +102,10 @@ for k=2:size(net.layers,2)-1
         assert(0,'costFunc and lossFunc do not match! Should be: lossFunc = d/dx costFunc');
     end
     
+    
+    if (isequal(net.layers{k}.properties.type,net.types.batchNorm))
+        continue;
+    end
     
     for fm=1:net.layers{k}.properties.numFm
         if (isequal(net.layers{k}.properties.type,net.types.fc))
@@ -74,33 +127,24 @@ for k=2:size(net.layers,2)-1
                 end
                 
                 rng(seed);%to set the same dropout each time..
-                net = feedForward(net, input, 0);
-                if (isequal(net.layers{k}.properties.type,net.types.fc))
-                    net.layers{k}.fcweight(y,x) = net.layers{k}.fcweight(y,x) + dw;
+                netPdW = net;
+                if (isequal(netPdW.layers{k}.properties.type,netPdW.types.fc))
+                    netPdW.layers{k}.fcweight(y,x) = netPdW.layers{k}.fcweight(y,x) + dw;
                 else
-                    net.layers{k}.weight{fm}(y,x,z,prevFm) = net.layers{k}.weight{fm}(y,x,z,prevFm) + dw;
-                    net.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn( flip(flip(flip(net.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad));
+                    netPdW.layers{k}.weight{fm}(y,x,z,prevFm) = netPdW.layers{k}.weight{fm}(y,x,z,prevFm) + dw;
+                    netPdW.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn( flip(flip(flip(netPdW.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (netPdW.layers{k-1}.properties.sizeFm+2*netPdW.layers{k}.properties.pad));
                 end
                 
                 rng(seed);%to set the same dropout each time..
-                netPdW =  feedForward(net, input, 0);
-                if (isequal(net.layers{k}.properties.type,net.types.fc))
-                    net.layers{k}.fcweight(y,x) = net.layers{k}.fcweight(y,x) - dw;
-                else
-                    net.layers{k}.weight{fm}(y,x,z,prevFm) = net.layers{k}.weight{fm}(y,x,z,prevFm) - dw;
-                    net.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn( flip(flip(flip(net.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (net.layers{k-1}.properties.sizeFm+2*net.layers{k}.properties.pad));
-                end
+                netPdW =  feedForward(netPdW, input, 0);
                 
-                cW = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
+                
                 cWPlusDw = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
                 
-                estimatedDcDw = (cWPlusDw-cW)/dw;
-                diff = estimatedDcDw-calculatedDcDw;
-                if ( abs(sum(diff)) > th )
-                    if ( k == size(net.layers,2))
-                        assert(0,'Big big blunder!!');
-                    end
-                    assert(0,'How come?? , problem in layer %d',k);
+                estimatedDcDw = (cWPlusDw-Cost)/dw;
+                diff = sum(estimatedDcDw)-calculatedDcDw;
+                if ( abs(diff) > th )
+                    assert(0,'Problem in weight. layer %d',k);
                 end
             end
         end
@@ -117,23 +161,18 @@ for k=2:size(net.layers,2)-1
         
         calculatedDcDw = net.layers{k}.biasdW(fm);
         rng(seed);%to set the same dropout each time..
-        net       =  feedForward(net, input, 0);
-        net.layers{k}.bias(fm) = net.layers{k}.bias(fm) + dw;
+        netPdW       =  net;
+        netPdW.layers{k}.bias(fm) = netPdW.layers{k}.bias(fm) + dw;
         rng(seed);%to set the same dropout each time..
-        netPdW =  feedForward(net, input, 0);
-        net.layers{k}.bias(fm) = net.layers{k}.bias(fm) - dw;
+        netPdW =  feedForward(netPdW, input, 0);
         
-        cW = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
         cWPlusDw = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
         
-        estimatedDcDw = (cWPlusDw-cW)/dw;
+        estimatedDcDw = (cWPlusDw-Cost)/dw;
         
-        diff = estimatedDcDw-calculatedDcDw;
-        if ( abs(sum(diff)) > th)
-            if ( k == size(net.layers,2) )
-                assert(0,'Big big blunder!!');
-            end
-            assert(0,'How come??');
+        diff = sum(estimatedDcDw)-calculatedDcDw;
+        if ( abs(diff) > th)
+            assert(0,'Problem in bias weight. layer %d',k);
         end
     end
 end

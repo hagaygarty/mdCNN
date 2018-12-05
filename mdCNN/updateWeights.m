@@ -7,14 +7,16 @@
 
 function [ net ] = updateWeights(net, ni, momentum , lambda )
 
+batchNum=net.hyperParam.batchNum;
+
 %update network weights
 for k=size(net.layers,2)-1:-1:2
     if (isequal(net.layers{k}.properties.type,net.types.softmax)) % is softmax layer
         continue;
     end
     if (isequal(net.layers{k}.properties.type,net.types.batchNorm)) % is batchnorm layer
-        net.layers{k}.properties.gamma = net.layers{k}.properties.gamma - ni*net.layers{k}.dgamma;
-        net.layers{k}.properties.beta  = net.layers{k}.properties.beta  - ni*net.layers{k}.dbeta;
+        net.layers{k}.gamma = net.layers{k}.gamma - ni*net.layers{k}.dgamma / batchNum;
+        net.layers{k}.beta  = net.layers{k}.beta  - ni*net.layers{k}.dbeta / batchNum;
     elseif (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer
         if (lambda~=0)
             weightDecay = ones(size(net.layers{k}.fcweight));
@@ -22,18 +24,18 @@ for k=size(net.layers,2)-1:-1:2
             net.layers{k}.fcweight = weightDecay.*net.layers{k}.fcweight;%weight decay
         end
         if (momentum~=0)
-            net.layers{k}.momentum = momentum*net.layers{k}.momentum - ni*net.layers{k}.dW;
+            net.layers{k}.momentum = momentum*net.layers{k}.momentum - ni*net.layers{k}.dW / batchNum;
             net.layers{k}.fcweight = net.layers{k}.fcweight + net.layers{k}.momentum;
         else
-            net.layers{k}.fcweight = net.layers{k}.fcweight - ni*net.layers{k}.dW;
+            net.layers{k}.fcweight = net.layers{k}.fcweight - ni*net.layers{k}.dW / batchNum;
         end
     else
         for fm=1:net.layers{k}.properties.numFm
             if (momentum~=0)
-                net.layers{k}.momentum{fm} = momentum * net.layers{k}.momentum{fm} - ni*net.layers{k}.dW{fm};
+                net.layers{k}.momentum{fm} = momentum * net.layers{k}.momentum{fm} - ni*net.layers{k}.dW{fm} / batchNum;
                 net.layers{k}.weight{fm} = (1-lambda*ni)*net.layers{k}.weight{fm} + net.layers{k}.momentum{fm};
             else
-                net.layers{k}.weight{fm}  = (1-lambda*ni)*net.layers{k}.weight{fm} - ni*net.layers{k}.dW{fm};
+                net.layers{k}.weight{fm}  = (1-lambda*ni)*net.layers{k}.weight{fm} - ni*net.layers{k}.dW{fm} / batchNum;
               
             end
             
@@ -43,10 +45,10 @@ for k=size(net.layers,2)-1:-1:2
             end
         end
         if (momentum~=0)
-            net.layers{k}.momentumBias = momentum * net.layers{k}.momentumBias - ni*net.layers{k}.biasdW;
+            net.layers{k}.momentumBias = momentum * net.layers{k}.momentumBias - ni*net.layers{k}.biasdW / batchNum;
             net.layers{k}.bias = net.layers{k}.bias + net.layers{k}.momentumBias;
         else
-            net.layers{k}.bias = net.layers{k}.bias - ni*net.layers{k}.biasdW;
+            net.layers{k}.bias = net.layers{k}.bias - ni*net.layers{k}.biasdW / batchNum;
         end
     end
 end

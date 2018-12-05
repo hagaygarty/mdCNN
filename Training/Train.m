@@ -376,7 +376,7 @@ function [ res ] = perfomOnNetWeights( net , func)
                  weights=[weights ; net.layers{k}.weight{fm}(:)]; %#ok<AGROW>
              end
          elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm))
-                 weights=[weights ; net.layers{k}.properties.gamma ; net.layers{k}.properties.beta]; %#ok<AGROW>
+                 weights=[weights ; net.layers{k}.gamma(:) ; net.layers{k}.beta(:)]; %#ok<AGROW>
          end
     end
     res = func(weights);
@@ -395,7 +395,7 @@ function [ res ] = perfomOnNetDerivatives( net , func)
                  dW=[dW ; net.layers{k}.dW{fm}(:)]; %#ok<AGROW>
              end
          elseif (isequal(net.layers{k}.properties.type,net.types.batchNorm))
-                 dW=[dW ; net.layers{k}.dgamma ; net.layers{k}.dbeta]; %#ok<AGROW>
+                 dW=[dW ; net.layers{k}.dgamma(:) ; net.layers{k}.dbeta(:)]; %#ok<AGROW>
          end
     end
     res = func(dW);

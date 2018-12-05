@@ -1,3 +1,3 @@
 function [answer] = dSigmoid(x)
-answer=Sigmoid(x).*(1-Sigmoid(x));
+answer=max(eps,Sigmoid(x).*(1-Sigmoid(x)));
 end

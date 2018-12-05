@@ -57,7 +57,7 @@ for k=2:size(net.layers,2)-1
             if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist
                 elemSize = prod(net.layers{k}.properties.pooling);
                 szOut=size(net.layers{k}.outs.z);
-                poolMat=-Inf+zeros([elemSize net.layers{k}.properties.numFm*prod(ceil(szOut(1:4)./[net.layers{k}.properties.pooling net.layers{k}.properties.numFm])) batchNum]);
+                poolMat=-1/eps+zeros([elemSize net.layers{k}.properties.numFm*prod(ceil(szOut(1:4)./[net.layers{k}.properties.pooling net.layers{k}.properties.numFm])) batchNum]);
 
                 newIndexes=repmat((0:batchNum-1).',1,length(net.layers{k}.properties.indexes))*numel(net.layers{k}.outs.z)/batchNum + repmat(net.layers{k}.properties.indexes,batchNum,1) ;
                 newIndexesReshape=repmat((0:batchNum-1).',1,length(net.layers{k}.properties.indexesReshape))*numel(poolMat)/batchNum + repmat(net.layers{k}.properties.indexesReshape,batchNum,1);
@@ -70,9 +70,24 @@ for k=2:size(net.layers,2)-1
             end
         case net.types.batchNorm
             %% batchNorm layer
-            net.layers{k}.outs.batchMean = mean(input(:));
-            net.layers{k}.outs.batchVar  = mean(abs(input(:)-net.layers{k}.outs.batchMean).^2) ;
-            net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)/sqrt(net.layers{k}.outs.batchVar+eps).*net.layers{k}.properties.gamma+net.layers{k}.properties.beta;
+
+                if ( testTime )
+                    net.layers{k}.outs.batchMean = net.layers{k}.outs.runningBatchMean;
+                    net.layers{k}.outs.batchVar = net.layers{k}.outs.runningBatchVar;
+                else
+                    net.layers{k}.outs.batchMean = mean(input,5);
+                    net.layers{k}.outs.batchVar = mean(abs(input-net.layers{k}.outs.batchMean).^2,5) ;
+                    if (isempty(net.layers{k}.outs.runningBatchMean))
+                        net.layers{k}.outs.runningBatchMean = net.layers{k}.outs.batchMean;
+                        net.layers{k}.outs.runningBatchVar  = net.layers{k}.outs.batchVar;
+                    else
+                        net.layers{k}.outs.runningBatchMean = (1-net.layers{k}.properties.alpha)*net.layers{k}.outs.runningBatchMean + net.layers{k}.properties.alpha*net.layers{k}.outs.batchMean;
+                        net.layers{k}.outs.runningBatchVar = (1-net.layers{k}.properties.alpha)*net.layers{k}.outs.runningBatchVar + net.layers{k}.properties.alpha*net.layers{k}.outs.batchVar;
+                    end
+                    
+                end
+                
+                net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar).*net.layers{k}.gamma+net.layers{k}.beta;
     end
     
     %% do activation + dropout
