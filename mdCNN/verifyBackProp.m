@@ -26,7 +26,7 @@ net = backPropegate(net, input, expectedOut);
 
 %create W+dW
 dw=1e-7;
-th = 1e-5;
+th = 1e-4;
 numIter=1;
 
 startVerification=clock;
