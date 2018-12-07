@@ -43,16 +43,24 @@ for k=1:size(net.layers,2)
             continue;
         case net.types.softmax
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
-            net.layers{k}.properties.Activation=@Unit;
-            net.layers{k}.properties.dActivation=@dUnit;
+            if (isfield(net.layers{k}.properties,'Activation')==0)
+                net.layers{k}.properties.Activation=@Unit;
+            end
+            if (isfield(net.layers{k}.properties,'dActivation')==0)
+                net.layers{k}.properties.dActivation=@dUnit;
+            end
         case net.types.fc
         case net.types.conv
         case net.types.batchNorm
             assert( isfield(net.layers{k}.properties,'numFm')==0, 'Error - no need to specify numFm in batchnorm layer, its inherited from previous layer. in layer %d',k);
             assert( net.hyperParam.batchNum>=2, 'Error - cannot use batch norm layer if batchSize<2. in layer %d',k);
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
-            net.layers{k}.properties.Activation=@Unit;
-            net.layers{k}.properties.dActivation=@dUnit;
+            if (isfield(net.layers{k}.properties,'Activation')==0)
+                net.layers{k}.properties.Activation=@Unit;
+            end
+            if (isfield(net.layers{k}.properties,'dActivation')==0)
+                net.layers{k}.properties.dActivation=@dUnit;
+            end
             net.layers{k}.EPS=1e-9;
             if (isfield(net.layers{k}.properties,'initGamma')==0)
                 net.layers{k}.properties.initGamma = 1;
