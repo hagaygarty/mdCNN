@@ -132,6 +132,10 @@ for k=1:size(net.layers,2)
             if (isscalar(net.layers{k}.properties.kernel))
                 net.layers{k}.properties.kernel = net.layers{k}.properties.kernel*ones(1,length(net.layers{1}.properties.sizeFm));
             end
+            
+            net.layers{k}.properties.kernel  = [net.layers{k}.properties.kernel 1 1 1];
+            net.layers{k}.properties.kernel  = net.layers{k}.properties.kernel(1:3);
+            
             net.layers{k}.properties.kernel = min(net.layers{k}.properties.kernel ,net.layers{1}.properties.sizeFm);
             
             %pad default settings
