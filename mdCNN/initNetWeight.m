@@ -39,6 +39,12 @@ for k=1:size(net.layers,2)
     switch net.layers{k}.properties.type
         case net.types.input
             assert(k==1,'Error input layer must be the first layer (%d)\n',k);
+            if (isfield(net.layers{k}.properties,'Activation')==0)
+                net.layers{k}.properties.Activation=@Unit;
+            end
+            if (isfield(net.layers{k}.properties,'dActivation')==0)
+                net.layers{k}.properties.dActivation=@dUnit;
+            end
             net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
             continue;
         case net.types.softmax
@@ -97,6 +103,8 @@ for k=1:size(net.layers,2)
             net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
             net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
+            net.layers{k}.properties.Activation=@Unit;
+            net.layers{k}.properties.dActivation=@dUnit;
             continue;
         otherwise
             assert(false,'Error - unknown layer type %s in layer %d\n',net.layers{k}.properties.type,k);

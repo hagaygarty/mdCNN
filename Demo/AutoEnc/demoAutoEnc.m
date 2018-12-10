@@ -9,12 +9,12 @@ dataset_folder = 'MNIST_dataset';
 
 MNIST = getMNISTdata(dataset_folder);    
 
-%verifyBackProp(net);
+verifyBackProp(net);
 
 batchNum = net.hyperParam.batchNum;
 
 
-msefig=figure('Name','MSE per 100 iteration (test set)');
+%msefig=figure('Name','MSE per 100 iteration (test set)');
 mseBatchfig=figure('Name','MSE per Batch (train set)');
 diffs=figure('Name','Left - network input,  Right - network output');
 iter=0;  msePerBatch=[]; mse=[]; maxImgsX=8;maxImgsY=8;
@@ -52,11 +52,11 @@ while( iter<maxIter)
         mse(end+1) = mean(cost(:));
         fprintf('iter %d/%d, MSE %f\n',iter-1,maxIter,mse(end));
        
-        set(0,'CurrentFigure',msefig);
-        plot(mse);grid on;set(gca, 'YScale', 'log');
+      %  set(0,'CurrentFigure',msefig);
+      %  plot(mse);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylames('MSE');
 
         set(0,'CurrentFigure',mseBatchfig);
-        plot(msePerBatch);grid on;set(gca, 'YScale', 'log');
+        plot(msePerBatch);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');
 
         
         set(0,'CurrentFigure',diffs);
