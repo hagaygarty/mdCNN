@@ -36,7 +36,8 @@ while( iter<maxIter)
     net = backPropegate(net, batch, expectedOut);
     net = updateWeights(net, ni, net.hyperParam.momentum , net.hyperParam.lambda);
     netOut = net.layers{end}.outs.activation;
-    msePerBatch(end+1) = sumDim(net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut), 1:length(net.layers{end}.properties.sizeOut)+1);
+    cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
+    msePerBatch(end+1) = mean(cost(:));
    
     if ( mod(iter-1,100)==0)%test network every 100 batches
         batch=[];
@@ -47,7 +48,8 @@ while( iter<maxIter)
         
         net = feedForward(net, batch , 1);
         netOut = net.layers{end}.outs.activation;
-        mse(end+1) = sumDim(net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut), 1:length(net.layers{end}.properties.sizeOut)+1);
+        cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
+        mse(end+1) = mean(cost(:));
         fprintf('iter %d/%d, MSE %f\n',iter-1,maxIter,mse(end));
        
         set(0,'CurrentFigure',msefig);
