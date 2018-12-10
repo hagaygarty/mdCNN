@@ -21,8 +21,7 @@ assert( isfield(net.layers{1}.properties,'sizeFm'), 'Error - sizeFm is not defin
 assert( length(net.layers{1}.properties.sizeFm)<=3, 'Error - sizeFm cannot have more then 3 dimensions');
 
 
-assert( isequal(net.layers{end}.properties.type,net.types.regression), 'Error - last layer must be regression layer (type =-1)');
-net.layers{end}.properties.sizeFm = 1;
+assert( isequal(net.layers{end}.properties.type,net.types.output), 'Error - last layer must be output layer');
 
 net.layers{1}.properties.sizeFm = [net.layers{1}.properties.sizeFm 1 1 1];
 net.layers{1}.properties.sizeFm = net.layers{1}.properties.sizeFm(1:3);
@@ -40,6 +39,7 @@ for k=1:size(net.layers,2)
     switch net.layers{k}.properties.type
         case net.types.input
             assert(k==1,'Error input layer must be the first layer (%d)\n',k);
+            net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
             continue;
         case net.types.softmax
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
@@ -50,18 +50,30 @@ for k=1:size(net.layers,2)
                 net.layers{k}.properties.dActivation=@dUnit;
             end
         case net.types.fc
-        case net.types.conv
-        case net.types.batchNorm
-            assert( isfield(net.layers{k}.properties,'numFm')==0, 'Error - no need to specify numFm in batchnorm layer, its inherited from previous layer. in layer %d',k);
-            assert( net.hyperParam.batchNum>=2, 'Error - cannot use batch norm layer if batchSize<2. in layer %d',k);
-            net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
+        case net.types.reshape
             if (isfield(net.layers{k}.properties,'Activation')==0)
                 net.layers{k}.properties.Activation=@Unit;
             end
             if (isfield(net.layers{k}.properties,'dActivation')==0)
                 net.layers{k}.properties.dActivation=@dUnit;
             end
-            net.layers{k}.EPS=1e-9;
+        case net.types.conv
+        case net.types.batchNorm
+            assert( isfield(net.layers{k}.properties,'numFm')==0, 'Error - no need to specify numFm in batchnorm layer, its inherited from previous layer. in layer %d',k);
+            assert( net.hyperParam.batchNum>=2, 'Error - cannot use batch norm layer if batchSize<2. in layer %d',k);
+            net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
+            if (isfield(net.layers{k}.properties,'EPS')==0)
+                net.layers{k}.EPS=1e-5;
+            end            
+            if (isfield(net.layers{k}.properties,'niFactor')==0)
+                net.layers{k}.niFactor=1;
+            end            
+            if (isfield(net.layers{k}.properties,'Activation')==0)
+                net.layers{k}.properties.Activation=@Unit;
+            end
+            if (isfield(net.layers{k}.properties,'dActivation')==0)
+                net.layers{k}.properties.dActivation=@dUnit;
+            end
             if (isfield(net.layers{k}.properties,'initGamma')==0)
                 net.layers{k}.properties.initGamma = 1;
             end
@@ -80,11 +92,14 @@ for k=1:size(net.layers,2)
             assert( (net.layers{k}.properties.alpha<=1)&&(net.layers{k}.properties.alpha>=0),'alpha must be in the range [0 .. 1], layer %d\n',k);
             net.layers{k}.outs.runningBatchMean = [];
             net.layers{k}.outs.runningBatchVar = [];
-        case net.types.regression
-            assert(k==size(net.layers,2),'Error - regression layer must be the last layer, layer (%d)\n',k);
+        case net.types.output
+            assert(k==size(net.layers,2),'Error - output layer must be the last layer, layer (%d)\n',k);
+            net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
+            net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
+            net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
             continue;
         otherwise
-            assert(false,'Error - unknown layer type %d in layer %d\n',net.layers{k}.properties.type,k);
+            assert(false,'Error - unknown layer type %s in layer %d\n',net.layers{k}.properties.type,k);
     end
     
     assert( isfield(net.layers{k}.properties,'numFm')==1, 'Error - missing numFM definition in layer %d',k);
@@ -110,6 +125,10 @@ for k=1:size(net.layers,2)
             net.layers{k}.properties.sizeFm = 1;
         case net.types.batchNorm
             net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
+        case net.types.reshape
+            net.layers{k}.properties.sizeFm  = [net.layers{k}.properties.sizeFm 1 1 1];
+            net.layers{k}.properties.sizeFm  = net.layers{k}.properties.sizeFm(1:3);
+            assert(   prod(net.layers{k}.properties.sizeFm)*net.layers{k}.properties.numFm == prod(net.layers{k-1}.properties.sizeOut), 'Error - reshape must have the same num of elements as the layer before (%d != %d), layer %d\n',prod(net.layers{k}.properties.sizeFm)*net.layers{k}.properties.numFm , prod(net.layers{k-1}.properties.sizeOut),k);
         case net.types.conv
             net.layers{k}.properties.inputDim = max(1,sum(net.layers{k-1}.properties.sizeFm>1));
             assert( ((isfield(net.layers{k}.properties,'pad')==0)    || (length(net.layers{k}.properties.pad)==1)     || (length(net.layers{k}.properties.pad)==net.layers{k}.properties.inputDim) )    , 'Error - pad can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
@@ -264,14 +283,16 @@ for k=1:size(net.layers,2)
         end
     end
     
+    assert(isfield(net.layers{k}.properties,'sizeFm') , 'Error - missing sizeFm field in layer %d\n',k);
+    assert(isfield(net.layers{k}.properties,'numFm') , 'Error - missing numFm field in layer %d\n',k);
     net.properties.numWeights = net.properties.numWeights + net.layers{k}.properties.numWeights;
     prevLayerActivation = net.layers{k}.properties.dropOut;
+    net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
 end
 
 net.layers{end}.properties.numFm = net.layers{end-1}.properties.numFm;
 net.layers{end}.properties.numWeights = 0;
 
-assert(   isequal(net.layers{end-1}.properties.type,net.types.fc)  || isequal(net.layers{end-1}.properties.type,net.types.softmax) ,'Last layer must be FC layer or softmax layer');
 assert(net.layers{end-1}.properties.dropOut==1,'Last layer must be with dropout=1');
 
 end

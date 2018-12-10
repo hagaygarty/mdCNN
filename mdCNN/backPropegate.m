@@ -12,18 +12,13 @@ function [net] = backPropegate(net, input, expectedOut)
 
 net = feedForward(net, input , 0);
 
-batchNum=size(input,5);
-
+batchNum=size(input,length(net.layers{1}.properties.sizeOut)+1);
+assert(isequal(size(expectedOut) , size(net.layers{end}.outs.activation)));
 net.layers{end}.error = net.layers{end}.properties.lossFunc(net.layers{end}.outs.activation,expectedOut);
 %% calculate the errors on every layer
 for k=size(net.layers,2)-1:-1:2
     % reshape the error to match the layer out type
-    
-    if ( isequal(net.layers{k}.properties.sizeFm,net.layers{k+1}.properties.sizeFm) )
-        net.layers{k}.error = net.layers{k+1}.error;
-    else
-        net.layers{k}.error = reshape(net.layers{k+1}.error,[net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm batchNum]);
-    end
+    net.layers{k}.error = net.layers{k+1}.error;
     
     
     %pass through activation
@@ -36,16 +31,19 @@ for k=size(net.layers,2)-1:-1:2
     switch net.layers{k}.properties.type
         case net.types.softmax
             expActivation=exp(net.layers{k-1}.outs.activation);
-            net.layers{k}.error =(net.layers{k}.outs.sumExp.*net.layers{k}.error-repmat(sum(expActivation.*net.layers{k}.error),size(net.layers{k}.outs.sumExp,1),1)).*expActivation./net.layers{k}.outs.sumExp.^2;
+            net.layers{k}.error =(net.layers{k}.outs.sumExp.*net.layers{k}.error- sumDim(expActivation.*net.layers{k}.error, 1:length(net.layers{k}.properties.sizeOut))).*expActivation./net.layers{k}.outs.sumExp.^2;
         case net.types.fc
-            net.layers{k}.dW = [reshape(net.layers{k-1}.outs.activation, [], batchNum) ; ones(1,batchNum) ]*net.layers{k}.error.' ;
-            net.layers{k}.error = net.layers{k}.fcweight(1:(end-1),:)*net.layers{k}.error;
+            net.layers{k}.dW = [reshape(net.layers{k-1}.outs.activation, [], batchNum) ; ones(1,batchNum) ]*reshape(net.layers{k}.error, [], batchNum).' ;
+            net.layers{k}.error = net.layers{k}.fcweight(1:(end-1),:)*reshape(net.layers{k}.error, [], batchNum);
+            net.layers{k}.error = reshape(net.layers{k}.error,[net.layers{k-1}.properties.sizeOut batchNum]);
         case net.types.batchNorm
             N = numel(net.layers{k+1}.error)/numel(net.layers{k}.outs.batchMean);
             Xh = (net.layers{k-1}.outs.activation-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar);
             net.layers{k}.dbeta  = sum(net.layers{k}.error,5);
             net.layers{k}.dgamma = sum(net.layers{k}.error.*Xh,5);
             net.layers{k}.error  = net.layers{k}.gamma./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar)/N .* (N*reshape(net.layers{k}.error,size(Xh))- net.layers{k}.dgamma.*Xh - net.layers{k}.dbeta);
+        case net.types.reshape
+            net.layers{k}.error  = reshape(net.layers{k}.error,[net.layers{k-1}.properties.sizeOut batchNum]);
         case net.types.conv
             %expand with pooling
             if ( ~isempty(find(net.layers{k}.properties.pooling>1, 1))) %pooling exist

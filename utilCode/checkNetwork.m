@@ -85,7 +85,8 @@ for idx=1:num;
     confMat2(label+1,idx) = 1;
     confMat3(:,idx) = patchAccumRes/sum(patchAccumRes);
 
-    err(idx) = nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut);
+    err(idx) = sumDim(nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut), 1:length(nets{1}.layers{end}.properties.sizeOut) );
+    
     
     if ( res(idx)==0)
         failedCount=failedCount+1;
@@ -138,11 +139,12 @@ for idx=worseMSEIdx
 
     [E, sortedOut] = sort(patchAccumRes); %#ok<ASGLU>
 
-    expectedOut=zeros(nets{1}.layers{end}.properties.numFm,1);
-    expectedOut(label+1)=1;
-
-    MSE =  nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut);
+    expectedOut=zeros([nets{1}.layers{end}.properties.sizeOut 1]);
+    expectedOut(1,label+1,1)=1;
+         
+    MSE = sumDim(nets{1}.layers{end}.properties.costFunc(patchAccumRes,expectedOut), 1:length(nets{1}.layers{end}.properties.sizeOut) );
     
+         
 
     h = subplot(imagePerAxe,imagePerAxe,imgCount);
     axis off

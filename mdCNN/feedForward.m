@@ -12,7 +12,7 @@ function [ net ] = feedForward(net, input , testTime)
 % 3 - selected dropout matrix
 % 4 - indexes of max pooling (the index of the max value in the pooling section)
 
-batchNum=size(input,5);
+batchNum=size(input,length(net.layers{1}.properties.sizeOut)+1);
 
 net.layers{1}.outs.activation = input;
 
@@ -22,11 +22,14 @@ for k=2:size(net.layers,2)-1
     switch net.layers{k}.properties.type
         case net.types.softmax
             %% softmax layer
-            net.layers{k}.outs.sumExp=repmat(sum(exp(input)),size(input,1),1);
-            net.layers{k}.outs.z =exp(input)./net.layers{k}.outs.sumExp;
+            net.layers{k}.outs.expIn = exp(input);
+            net.layers{k}.outs.sumExp=sumDim(net.layers{k}.outs.expIn, 1:length(net.layers{k}.properties.sizeOut) );
+            net.layers{k}.outs.z =net.layers{k}.outs.expIn./net.layers{k}.outs.sumExp;
         case net.types.fc
             %% fully connected layer
-            net.layers{k}.outs.z =net.layers{k}.fcweight.' * [reshape(input, [], batchNum) ; ones(1,batchNum)] ;
+            net.layers{k}.outs.z = reshape(net.layers{k}.fcweight.' * [reshape(input, [], batchNum) ; ones(1,batchNum)], [net.layers{k}.properties.sizeOut batchNum]);
+        case net.types.reshape
+            net.layers{k}.outs.z = reshape(input, [net.layers{k}.properties.sizeOut batchNum]);           
         case net.types.conv
             %% for conv layers
             if ( ~isempty(find(net.layers{k}.properties.pad>0, 1)))
@@ -88,6 +91,8 @@ for k=2:size(net.layers,2)-1
                 end
                 
                 net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar).*net.layers{k}.gamma+net.layers{k}.beta;
+        otherwise
+            assert(false,'Error - unknown layer type %s in layer %d\n',net.layers{k}.properties.type,k);
     end
     
     %% do activation + dropout

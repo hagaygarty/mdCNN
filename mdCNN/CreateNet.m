@@ -13,7 +13,7 @@ function [ net ] = CreateNet( conf_file )
      eval(txt);
      
      net.properties.numLayers  = length(net.layers);
-     net.properties.version    = 2.1;
+     net.properties.version    = 2.2;
 
      conf_dirStruct = dir(conf_file); conf_dirStruct.name=conf_file;
      net.properties.sources{1}=[dir('./*.m') ; dir('./Util/*.m') ; conf_dirStruct];
@@ -92,7 +92,8 @@ net.types.input='input';
 net.types.fc='fc';
 net.types.conv='conv';
 net.types.batchNorm='batchNorm';
-net.types.regression='regression';
+net.types.output='output';
 net.types.softmax='softmax';
+net.types.reshape='reshape';
 end
 

@@ -18,7 +18,7 @@ batchNum=net.hyperParam.batchNum;
 
 input = normrnd(0,1, [net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm batchNum]);
 
-expectedOut=rand(net.layers{end}.properties.numFm,batchNum);
+expectedOut=rand([net.layers{end}.properties.sizeFm net.layers{end}.properties.numFm batchNum]);
 
 seed = rng;
 % create calculated dCdW
@@ -32,10 +32,9 @@ numIter=1;
 startVerification=clock;
 
 Cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
-
 %check beta/gamma
 for k=2:size(net.layers,2)-1
-    if (~isequal(net.layers{k}.properties.type,net.types.batchNorm))
+    if (~isequal(net.layers{k}.properties.type,net.types.batchNorm)) % only for batchnorm
         continue;
     end
     for fm=1:net.layers{k}.properties.numFm
@@ -58,8 +57,8 @@ for k=2:size(net.layers,2)-1
         CostPlusDbeta = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
         
         estimatedDcDbeta = (CostPlusDbeta-Cost)/dw;
-        
-        diff = sum(estimatedDcDbeta)-calculatedDcDbeta;
+
+        diff = sum(estimatedDcDbeta(:))-calculatedDcDbeta;
         if ( abs(diff) > th)
             assert(0,'problem in beta gradient');
         end
@@ -74,16 +73,16 @@ for k=2:size(net.layers,2)-1
         
         estimatedDcDgamma = (CostPlusDGamma-Cost)/dw;
         
-        diff = sum(estimatedDcDgamma)-calculatedDcDGamma;
+        diff = sum(estimatedDcDgamma(:))-calculatedDcDGamma;
         if ( abs(diff) > th)
             assert(0,'problem in gamma gradient');
         end
     end
 end
 
-
+%check weights
 for k=2:size(net.layers,2)-1
-    if (isequal(net.layers{k}.properties.type,net.types.softmax))
+    if (net.layers{k}.properties.numWeights==0)
         continue;
     end
     
@@ -142,7 +141,7 @@ for k=2:size(net.layers,2)-1
                 cWPlusDw = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
                 
                 estimatedDcDw = (cWPlusDw-Cost)/dw;
-                diff = sum(estimatedDcDw)-calculatedDcDw;
+                diff = sum(estimatedDcDw(:))-calculatedDcDw;
                 if ( abs(diff) > th )
                     assert(0,'Problem in weight. layer %d',k);
                 end
@@ -153,7 +152,7 @@ end
 
 %check bias weight
 for k=2:size(net.layers,2)-1
-    if (~isequal(net.layers{k}.properties.type,net.types.conv)) % not for conv
+    if (~isequal(net.layers{k}.properties.type,net.types.conv)) % only for conv
         continue;
     end
     
@@ -170,7 +169,7 @@ for k=2:size(net.layers,2)-1
         
         estimatedDcDw = (cWPlusDw-Cost)/dw;
         
-        diff = sum(estimatedDcDw)-calculatedDcDw;
+        diff = sum(estimatedDcDw(:))-calculatedDcDw;
         if ( abs(diff) > th)
             assert(0,'Problem in bias weight. layer %d',k);
         end

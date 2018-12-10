@@ -123,8 +123,8 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
          end
          BatchSample(:,:,:,:,bIdx) = GetNetworkInputs(sample, net, 0);
-         expectedOut(:,bIdx)=zeros(1,net.layers{end-1}.properties.numFm);
-         expectedOut(label+1,bIdx)=1;
+         expectedOut(:,:,bIdx)=zeros(net.layers{end}.properties.sizeOut);
+         expectedOut(1,label+1,bIdx)=1;
 
          
          net.runInfoParam.samplesLearned=net.runInfoParam.samplesLearned+1;
@@ -244,12 +244,12 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          
          [~,m] = max(patchAccumRes);
          
-         expectedOut=zeros(net.layers{end}.properties.numFm,1);
-         expectedOut(label+1)=1;
+         expectedOut=zeros([net.layers{end}.properties.sizeOut 1]);
+         expectedOut(1,label+1,1)=1;
          
          res(i) = (m-1==label); %#ok<AGROW>
  
-         err(i) = net.layers{end}.properties.costFunc(patchAccumRes,expectedOut);
+         err(i) = sumDim(net.layers{end}.properties.costFunc(patchAccumRes,expectedOut), 1:length(net.layers{end}.properties.sizeOut) );
          
          
      end
