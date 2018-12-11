@@ -144,51 +144,49 @@ for k=1:size(net.layers,2)
             assert( ((isfield(net.layers{k}.properties,'pooling')==0)|| (length(net.layers{k}.properties.pooling)==1) || (length(net.layers{k}.properties.pooling)==net.layers{k}.properties.inputDim) ), 'Error - pooling can be a scalar or a vector with length as num dimnetions (%d), layer=%d',net.layers{k}.properties.inputDim,k);
             
             if (isfield(net.layers{k}.properties,'stride')==0)
-                net.layers{k}.properties.stride=ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.stride=ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
             if (isfield(net.layers{k}.properties,'pad')==0)
-                net.layers{k}.properties.pad=zeros(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.pad=zeros(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
             if (isfield(net.layers{k}.properties,'pooling')==0)
-                net.layers{k}.properties.pooling=ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.pooling=ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
             %sanity checks
             assert( isfield(net.layers{k}.properties,'kernel')==1, 'Error - missing kernel definition in layer %d',k);
             
             
             if (isscalar(net.layers{k}.properties.kernel))
-                net.layers{k}.properties.kernel = net.layers{k}.properties.kernel*ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.kernel = net.layers{k}.properties.kernel*ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
-            
-            net.layers{k}.properties.kernel  = [net.layers{k}.properties.kernel 1 1 1];
-            net.layers{k}.properties.kernel  = net.layers{k}.properties.kernel(1:3);
-            
-            net.layers{k}.properties.kernel = min(net.layers{k}.properties.kernel ,net.layers{1}.properties.sizeFm);
             
             %pad default settings
             if (isscalar(net.layers{k}.properties.pad))
-                net.layers{k}.properties.pad = net.layers{k}.properties.pad*ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.pad = net.layers{k}.properties.pad*ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
-            net.layers{k}.properties.pad = net.layers{k}.properties.pad.*(net.layers{1}.properties.sizeFm>1);
+            net.layers{k}.properties.pad     = [net.layers{k}.properties.pad 0 0 0];
+            net.layers{k}.properties.pad     = net.layers{k}.properties.pad(1:3);
+
+            net.layers{k}.properties.kernel  = [net.layers{k}.properties.kernel 1 1 1];
+            net.layers{k}.properties.kernel  = net.layers{k}.properties.kernel(1:3);
+            
             
             %pooling default settings
             if (isscalar(net.layers{k}.properties.pooling))
-                net.layers{k}.properties.pooling = net.layers{k}.properties.pooling*ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.pooling = net.layers{k}.properties.pooling*ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
-            net.layers{k}.properties.pooling = min(net.layers{k}.properties.pooling ,net.layers{1}.properties.sizeFm);
+            net.layers{k}.properties.pooling = [net.layers{k}.properties.pooling 1 1 1];
+            net.layers{k}.properties.pooling = net.layers{k}.properties.pooling(1:3);
+            net.layers{k}.properties.pooling = min(net.layers{k}.properties.pooling ,net.layers{k-1}.properties.sizeFm);
             
             %stride default settings
             if (isscalar(net.layers{k}.properties.stride))
-                net.layers{k}.properties.stride = net.layers{k}.properties.stride*ones(1,length(net.layers{1}.properties.sizeFm));
+                net.layers{k}.properties.stride = net.layers{k}.properties.stride*ones(1,sum(net.layers{k-1}.properties.sizeFm>1));
             end
-            net.layers{k}.properties.stride = min(net.layers{k}.properties.stride ,net.layers{1}.properties.sizeFm);
-            
             net.layers{k}.properties.stride  = [net.layers{k}.properties.stride 1 1 1];
             net.layers{k}.properties.stride  = net.layers{k}.properties.stride(1:3);
-            net.layers{k}.properties.pad     = [net.layers{k}.properties.pad 1 1 1];
-            net.layers{k}.properties.pad     = net.layers{k}.properties.pad(1:3);
-            net.layers{k}.properties.pooling = [net.layers{k}.properties.pooling 1 1 1];
-            net.layers{k}.properties.pooling = net.layers{k}.properties.pooling(1:3);
+            net.layers{k}.properties.stride = min(net.layers{k}.properties.stride ,net.layers{1}.properties.sizeFm);
+            
             
             assert( isempty(find(net.layers{k}.properties.pooling<1, 1)), 'Error - pooling must be >=1 for all dimensions, layer=%d',k);
             assert( isempty(find(net.layers{k}.properties.kernel<1, 1)) , 'Error - kernel must be >=1 for all dimensions, layer=%d',k);
