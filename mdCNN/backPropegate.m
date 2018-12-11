@@ -112,7 +112,7 @@ for k=size(net.layers,2)-1:-1:2
                 net.layers{k}.error = zeros([(szNextError+szNextKernel-1) net.layers{k-1}.properties.numFm batchNum]);
                 
                 for fm=1:net.layers{k-1}.properties.numFm
-                    Im=sum(nextErrorFFT.*repmat(kernelFFT(:,:,:,:,fm),[ones(1,ndims(kernelFFT(:,:,:,:,fm))) batchNum]),4);
+                    Im=sum(nextErrorFFT.*repmat(kernelFFT(:,:,:,:,fm),[ones(1,ndims(nextErrorFFT)-1) batchNum]),4);
                     for dim=1:net.layers{k}.properties.inputDim-1
                         Im = ifft(Im,[],dim);
                     end
