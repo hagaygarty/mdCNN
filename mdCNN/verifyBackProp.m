@@ -24,6 +24,7 @@ net =  feedForward(net, input, 0);
 expectedOut=net.layers{end}.outs.activation;
 expectedOut(expectedOut>0.5) = expectedOut(expectedOut>0.5)*0.99;
 expectedOut(expectedOut<0.5) = expectedOut(expectedOut<0.5)*1.01;
+expectedOut(expectedOut==0) = 0.001;
 
 rng(seed);
 % create calculated dCdW
@@ -80,7 +81,7 @@ for k=1:size(net.layers,2)
                 
                 estimatedDcDbeta = CostPlusDbeta-Cost;
                 diffs{k}(end+1) = abs(sum(estimatedDcDbeta(:))-calculatedDcDbeta*dw)/dw;
-                if ( diffs{k}(end) > th)
+                if ( diffs{k}(end) > sqrt(numel(estimatedDcDbeta))*th)
                     assert(0,'problem in beta gradient');
                 end
                 
@@ -96,7 +97,7 @@ for k=1:size(net.layers,2)
                 estimatedDcDgamma = (CostPlusDGamma-Cost);
                 
                 diffs{k}(end+1) = abs(sum(estimatedDcDgamma(:))-calculatedDcDGamma*dw)/dw;
-                if ( diffs{k}(end) > th)
+                if ( diffs{k}(end) > sqrt(numel(estimatedDcDgamma))*th)
                     assert(0,'problem in gamma gradient');
                 end
             end
@@ -148,7 +149,7 @@ for k=1:size(net.layers,2)
                         
                         estimatedDcDw = (cWPlusDw-Cost);
                         diffs{k}(end+1) = abs(sum(estimatedDcDw(:))-calculatedDcDw*dw)/dw;
-                        if ( diffs{k}(end) > th )
+                        if ( diffs{k}(end) > sqrt(numel(estimatedDcDw))*th )
                             assert(0,'Problem in weight. layer %d',k);
                         end
                     end
@@ -175,7 +176,7 @@ for k=1:size(net.layers,2)
             estimatedDcDw = (cWPlusDw-Cost);
             
             diffsBias{k}(end+1) = abs(sum(estimatedDcDw(:))-calculatedDcDw*dw)/dw;
-            if ( diffsBias{k}(end) > th)
+            if ( diffsBias{k}(end) > sqrt(numel(estimatedDcDw))*th)
                 assert(0,'Problem in bias weight. layer %d',k);
             end
         end
