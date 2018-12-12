@@ -249,7 +249,8 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          
          res(i) = (m-1==label); %#ok<AGROW>
  
-         err(i) = sumDim(net.layers{end}.properties.costFunc(patchAccumRes,expectedOut), 1:length(net.layers{end}.properties.sizeOut) );
+         cost = net.layers{end}.properties.costFunc(patchAccumRes,expectedOut);
+         err(i) = mean(cost(:));
          
          
      end

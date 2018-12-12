@@ -85,7 +85,8 @@ for idx=1:num;
     confMat2(label+1,idx) = 1;
     confMat3(:,idx) = patchAccumRes/sum(patchAccumRes);
 
-    err(idx) = sumDim(nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut), 1:length(nets{1}.layers{end}.properties.sizeOut) );
+    cost = nets{1}.layers{end}.properties.costFunc(nets{1}.layers{end}.outs.activation,expectedOut);
+    err(idx) = mean(cost(:));
     
     
     if ( res(idx)==0)
