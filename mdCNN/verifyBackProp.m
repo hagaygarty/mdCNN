@@ -15,6 +15,7 @@ fprintf('Verifying backProp..\n');
 
 batchNum=net.hyperParam.batchNum;
 
+seed = rng;
 
 input = normrnd(0,1, [net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm batchNum]);
 net =  feedForward(net, input, 0);
@@ -24,7 +25,7 @@ expectedOut=net.layers{end}.outs.activation;
 expectedOut(expectedOut>0.5) = expectedOut(expectedOut>0.5)*0.99;
 expectedOut(expectedOut<0.5) = expectedOut(expectedOut<0.5)*1.01;
 
-seed = rng;
+rng(seed);
 % create calculated dCdW
 net = backPropegate(net, input, expectedOut);
 

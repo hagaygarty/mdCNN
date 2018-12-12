@@ -101,7 +101,7 @@ for k=2:size(net.layers,2)-1
     else
         net.layers{k}.outs.activation = net.layers{k}.properties.Activation(net.layers{k}.outs.z);
         if (net.layers{k}.properties.dropOut~=1)
-            net.layers{k}.outs.dropout = binornd(1,net.layers{k}.properties.dropOut,size(net.layers{k}.outs.z)); %set dropout matrix
+            net.layers{k}.outs.dropout = repmat(binornd(1,net.layers{k}.properties.dropOut,net.layers{k}.properties.sizeOut),[ones(1,length(net.layers{k}.properties.sizeOut)) batchNum]); %set dropout matrix
             net.layers{k}.outs.activation = net.layers{k}.outs.activation.*net.layers{k}.outs.dropout;
         end
     end
