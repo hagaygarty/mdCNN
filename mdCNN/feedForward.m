@@ -90,7 +90,7 @@ for k=2:size(net.layers,2)-1
                     
                 end
                 
-                net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar).*net.layers{k}.gamma+net.layers{k}.beta;
+                net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.properties.EPS+net.layers{k}.outs.batchVar).*net.layers{k}.gamma+net.layers{k}.beta;
         otherwise
             assert(false,'Error - unknown layer type %s in layer %d\n',net.layers{k}.properties.type,k);
     end

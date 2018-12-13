@@ -69,7 +69,7 @@ for k=1:size(net.layers,2)
             assert( net.hyperParam.batchNum>=2, 'Error - cannot use batch norm layer if batchSize<2. in layer %d',k);
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
             if (isfield(net.layers{k}.properties,'EPS')==0)
-                net.layers{k}.EPS=1e-5;
+                net.layers{k}.properties.EPS=1e-5;
             end            
             if (isfield(net.layers{k}.properties,'niFactor')==0)
                 net.layers{k}.niFactor=1;

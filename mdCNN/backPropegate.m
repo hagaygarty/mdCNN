@@ -38,10 +38,10 @@ for k=size(net.layers,2)-1:-1:2
             net.layers{k}.error = reshape(net.layers{k}.error,[net.layers{k-1}.properties.sizeOut batchNum]);
         case net.types.batchNorm
             N = numel(net.layers{k+1}.error)/numel(net.layers{k}.outs.batchMean);
-            Xh = (net.layers{k-1}.outs.activation-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar);
+            Xh = (net.layers{k-1}.outs.activation-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.properties.EPS+net.layers{k}.outs.batchVar);
             net.layers{k}.dbeta  = sum(net.layers{k}.error,5);
             net.layers{k}.dgamma = sum(net.layers{k}.error.*Xh,5);
-            net.layers{k}.error  = net.layers{k}.gamma./sqrt(net.layers{k}.EPS+net.layers{k}.outs.batchVar)/N .* (N*reshape(net.layers{k}.error,size(Xh))- net.layers{k}.dgamma.*Xh - net.layers{k}.dbeta);
+            net.layers{k}.error  = net.layers{k}.gamma./sqrt(net.layers{k}.properties.EPS+net.layers{k}.outs.batchVar)/N .* (N*reshape(net.layers{k}.error,size(Xh))- net.layers{k}.dgamma.*Xh - net.layers{k}.dbeta);
         case net.types.reshape
             net.layers{k}.error  = reshape(net.layers{k}.error,[net.layers{k-1}.properties.sizeOut batchNum]);
         case net.types.conv
