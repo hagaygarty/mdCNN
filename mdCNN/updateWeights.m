@@ -16,8 +16,8 @@ for k=size(net.layers,2):-1:1
     end
     
     if (isequal(net.layers{k}.properties.type,net.types.batchNorm)) % is batchnorm layer
-        net.layers{k}.gamma = net.layers{k}.gamma - ni * net.layers{k}.niFactor / batchNum * net.layers{k}.dgamma;
-        net.layers{k}.beta  = net.layers{k}.beta  - ni * net.layers{k}.niFactor / batchNum * net.layers{k}.dbeta;
+        net.layers{k}.gamma = net.layers{k}.gamma - ni * net.layers{k}.properties.niFactor / batchNum * net.layers{k}.dgamma;
+        net.layers{k}.beta  = net.layers{k}.beta  - ni * net.layers{k}.properties.niFactor / batchNum * net.layers{k}.dbeta;
     elseif (isequal(net.layers{k}.properties.type,net.types.fc)) % is fully connected layer
         if (lambda~=0)
             weightDecay = ones(size(net.layers{k}.fcweight));

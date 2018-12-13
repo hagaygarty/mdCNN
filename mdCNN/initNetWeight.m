@@ -72,7 +72,7 @@ for k=1:size(net.layers,2)
                 net.layers{k}.properties.EPS=1e-5;
             end            
             if (isfield(net.layers{k}.properties,'niFactor')==0)
-                net.layers{k}.niFactor=1;
+                net.layers{k}.properties.niFactor=1;
             end            
             if (isfield(net.layers{k}.properties,'Activation')==0)
                 net.layers{k}.properties.Activation=@Unit;
