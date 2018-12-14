@@ -46,7 +46,6 @@ for k=1:size(net.layers,2)
                 net.layers{k}.properties.dActivation=@dUnit;
             end
             net.layers{k}.properties.sizeOut = [net.layers{k}.properties.sizeFm net.layers{k}.properties.numFm];
-            continue;
         case net.types.softmax
             net.layers{k}.properties.numFm = net.layers{k-1}.properties.numFm;
             if (isfield(net.layers{k}.properties,'Activation')==0)
@@ -127,6 +126,8 @@ for k=1:size(net.layers,2)
     assert(((net.layers{k}.properties.dropOut<=1) &&(net.layers{k}.properties.dropOut>0)) ,'Dropout must be >0 and <=1 in layer %d',k);
     
     switch net.layers{k}.properties.type
+        case net.types.input
+            continue;
         case net.types.softmax
             net.layers{k}.properties.sizeFm = net.layers{k-1}.properties.sizeFm;
         case net.types.fc

@@ -35,6 +35,7 @@ function [ net ] = CreateNet( conf_file )
 
      net.runInfoParam.endSeed = rng;
 
+     printNetwork(net);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -42,7 +43,7 @@ function [ net ] = initNetDefaults( net )
 
 net.hyperParam.trainLoopCount=1000;%on how many samples to train before evaluating the network
 net.hyperParam.testImageNum=2000;
-net.hyperParam.batchNum = 1; %on how many samples to train before updating weights. batch>1 converges slower , but in some cases can improve accuracy
+net.hyperParam.batchNum = 1; %on how many samples to train before updating weights.
 net.hyperParam.ni_initial    = 0.05;% ni to start training process
 net.hyperParam.ni_final = 0.00001;% final ni to stop the training process
 net.hyperParam.noImprovementTh=50; % if after noImprovementTh there is no improvement , reduce ni
@@ -51,7 +52,7 @@ net.hyperParam.constInitWeight=nan; %Use nan to set initial weight to random. An
 net.hyperParam.lambda=0; %L2 regularization factor, set 0 for none. Above 0.01 not recommended
 net.hyperParam.testOnData=0; % to perform testing after each epoc on the data inputs or test inputs
 net.hyperParam.addBackround=0; % random background can be added to samples before passing to net in order to improve noise resistance.
-net.hyperParam.testOnNull=0;% Training on non data images without any feature to detect (I call them null images) 
+net.hyperParam.testOnNull=0;% Training on non data images without any feature to detect 
 net.properties.skipLastLayerErrorCalc=1; % the input layer does not need errors hence calculation can be skipped     
 
 %%%%%%%%%%%%%% Augmentation %%%%%%%%%%%%%%
