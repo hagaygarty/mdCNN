@@ -74,9 +74,12 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
  if (~exist('net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni','var'))
      net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni = net.hyperParam.ni_initial;
-     net.runInfoParam.MSE_train=[];     
  end
-     
+
+ if (~exist('net.runInfoParam.MSE_train','var'))
+    net.runInfoParam.MSE_train=[];     
+ end
+
  %% Main epoc loop
  while (1)
      net.runInfoParam.iter=net.runInfoParam.iter+1;
@@ -158,7 +161,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
      startTesting=clock;
      
-     plot(net.runInfoParam.MSE_train);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');title('MSE on train set');drawnow
+     plot(smooth(net.runInfoParam.MSE_train,net.hyperParam.batchNum));grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');title('MSE on train set');drawnow
      
      %% test testing loop
      batchIdx=0;res=[];mseSample=[];
