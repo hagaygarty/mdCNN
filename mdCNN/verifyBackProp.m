@@ -15,7 +15,6 @@ fprintf('Verifying backProp..\n');
 
 batchNum=net.hyperParam.batchNum;
 
-seed = rng;
 
 input = normrnd(0,1, [net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm batchNum]);
 net =  feedForward(net, input, 0);
@@ -26,7 +25,7 @@ expectedOut(expectedOut>0.5) = expectedOut(expectedOut>0.5)*0.99;
 expectedOut(expectedOut<0.5) = expectedOut(expectedOut<0.5)*1.01;
 expectedOut(expectedOut==0) = 0.001;
 
-rng(seed);
+rng(initSeed);
 % create calculated dCdW
 net = backPropegate(net, input, expectedOut);
 
@@ -70,7 +69,7 @@ for k=1:size(net.layers,2)
                 % check beta
                 netVerify       =  net;
                 netVerify.layers{k}.beta(curIdx) = netVerify.layers{k}.beta(curIdx) + dw;
-                seedBefore=rng; rng(seed);%to set the same dropout each time..
+                seedBefore=rng; rng(initSeed);%to set the same dropout each time..
                 netPdW =  feedForward(netVerify, input, 0);
                 rng(seedBefore);
                 
@@ -85,7 +84,7 @@ for k=1:size(net.layers,2)
                 % check gamma
                 netVerify       =  net;
                 netVerify.layers{k}.gamma(curIdx) = netVerify.layers{k}.gamma(curIdx) + dw;
-                seedBefore=rng; rng(seed);%to set the same dropout each time..
+                seedBefore=rng; rng(initSeed);%to set the same dropout each time..
                 netPdW =  feedForward(netVerify, input, 0);
                 rng(seedBefore);
                 
@@ -138,7 +137,7 @@ for k=1:size(net.layers,2)
                             netPdW.layers{k}.weightFFT{fm}(:,:,:,prevFm) = fftn( flip(flip(flip(netPdW.layers{k}.weight{fm}(:,:,:,prevFm),1),2),3) , (netPdW.layers{k-1}.properties.sizeFm+2*netPdW.layers{k}.properties.pad));
                         end
                         
-                        seedBefore = rng; rng(seed);%to set the same dropout each time..
+                        seedBefore = rng; rng(initSeed);%to set the same dropout each time..
                         netPdW =  feedForward(netPdW, input, 0);
                         rng(seedBefore);
                         
@@ -165,7 +164,7 @@ for k=1:size(net.layers,2)
             grads{k}(end+1) = calculatedDcDw;
             netPdW       =  net;
             netPdW.layers{k}.bias(fm) = netPdW.layers{k}.bias(fm) + dw;
-            seedBefore = rng; rng(seed);%to set the same dropout each time..
+            seedBefore = rng; rng(initSeed);%to set the same dropout each time..
             netPdW =  feedForward(netPdW, input, 0);
             rng(seedBefore);
             cWPlusDw = netPdW.layers{end}.properties.costFunc(netPdW.layers{end}.outs.activation,expectedOut);
