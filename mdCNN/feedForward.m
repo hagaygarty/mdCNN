@@ -22,7 +22,11 @@ for k=2:size(net.layers,2)-1
     switch net.layers{k}.properties.type
         case net.types.softmax
             %% softmax layer
-            net.layers{k}.outs.expIn = exp(input);
+            maxInput = input;
+            for dim=1:length(net.layers{k}.properties.sizeOut)
+                maxInput = max(maxInput,[],dim);
+            end
+            net.layers{k}.outs.expIn = exp(input-maxInput);
             net.layers{k}.outs.sumExp=sumDim(net.layers{k}.outs.expIn, 1:length(net.layers{k}.properties.sizeOut) );
             net.layers{k}.outs.z =net.layers{k}.outs.expIn./net.layers{k}.outs.sumExp;
         case net.types.fc

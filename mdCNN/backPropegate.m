@@ -30,8 +30,7 @@ for k=size(net.layers,2)-1:-1:2
     %calc dW
     switch net.layers{k}.properties.type
         case net.types.softmax
-            expActivation=exp(net.layers{k-1}.outs.activation);
-            net.layers{k}.error =(net.layers{k}.outs.sumExp.*net.layers{k}.error- sumDim(expActivation.*net.layers{k}.error, 1:length(net.layers{k}.properties.sizeOut))).*expActivation./net.layers{k}.outs.sumExp.^2;
+            net.layers{k}.error =(net.layers{k}.outs.sumExp.*net.layers{k}.error- sumDim(net.layers{k}.outs.expIn.*net.layers{k}.error, 1:length(net.layers{k}.properties.sizeOut))).*net.layers{k}.outs.expIn./net.layers{k}.outs.sumExp.^2;
         case net.types.fc
             net.layers{k}.dW = [reshape(net.layers{k-1}.outs.activation, [], batchNum) ; ones(1,batchNum) ]*reshape(net.layers{k}.error, [], batchNum).' ;
             net.layers{k}.error = net.layers{k}.fcweight(1:(end-1),:)*reshape(net.layers{k}.error, [], batchNum);
