@@ -12,7 +12,7 @@ MNIST = getMNISTdata(dataset_folder);
 % start training, will train for 15k images. Reach about 96.30% in several minutes. 
 % In order to reach 99.2% remove the last parameter (15k) and let it train longer.
 % It will stop training automatically (once ni reach below thresh)
-net   =  Train(MNIST,net, 15000);
+net   =  Train(MNIST,net, 64*1024 ); % 1024 batches
 
 
 checkNetwork(net,Inf,MNIST,1);
