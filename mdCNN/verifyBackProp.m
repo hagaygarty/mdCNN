@@ -59,20 +59,17 @@ for k=1:size(net.layers,2)
     if (isequal(net.layers{k}.properties.type,net.types.batchNorm)) % only for batchnorm
         %check beta/gamma
         for fm=1:net.layers{k}.properties.numFm
-           
             for iter=1:numIter
-                y=randi(size(net.layers{k}.dbeta,1));
-                x=randi(size(net.layers{k}.dbeta,2));
-                z=randi(size(net.layers{k}.dbeta,3));
-                calculatedDcDbeta = net.layers{k}.dbeta(y,x,z,fm);
-                calculatedDcDGamma = net.layers{k}.dgamma(y,x,z,fm);
+                curIdx = numel(net.layers{k}.dbeta)/net.layers{k}.properties.numFm * (fm-1) +  randi(numel(net.layers{k}.dbeta)/net.layers{k}.properties.numFm);
+                calculatedDcDbeta = net.layers{k}.dbeta(curIdx);
+                calculatedDcDGamma = net.layers{k}.dgamma(curIdx);
                 
                 grads{k}(end+1) = calculatedDcDbeta;
                 grads{k}(end+1) = calculatedDcDGamma;
                 
                 % check beta
                 netVerify       =  net;
-                netVerify.layers{k}.beta(y,x,z,fm) = netVerify.layers{k}.beta(y,x,z,fm) + dw;
+                netVerify.layers{k}.beta(curIdx) = netVerify.layers{k}.beta(curIdx) + dw;
                 seedBefore=rng; rng(seed);%to set the same dropout each time..
                 netPdW =  feedForward(netVerify, input, 0);
                 rng(seedBefore);
@@ -87,7 +84,7 @@ for k=1:size(net.layers,2)
                 
                 % check gamma
                 netVerify       =  net;
-                netVerify.layers{k}.gamma(y,x,z,fm) = netVerify.layers{k}.gamma(y,x,z,fm) + dw;
+                netVerify.layers{k}.gamma(curIdx) = netVerify.layers{k}.gamma(curIdx) + dw;
                 seedBefore=rng; rng(seed);%to set the same dropout each time..
                 netPdW =  feedForward(netVerify, input, 0);
                 rng(seedBefore);

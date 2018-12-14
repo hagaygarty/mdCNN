@@ -82,8 +82,8 @@ for k=2:size(net.layers,2)-1
                     net.layers{k}.outs.batchMean = net.layers{k}.outs.runningBatchMean;
                     net.layers{k}.outs.batchVar = net.layers{k}.outs.runningBatchVar;
                 else
-                    net.layers{k}.outs.batchMean = mean(input,5);
-                    net.layers{k}.outs.batchVar = mean(abs(input-net.layers{k}.outs.batchMean).^2,5) ;
+                    net.layers{k}.outs.batchMean = mean(input,length(net.layers{k}.properties.sizeOut)+1);
+                    net.layers{k}.outs.batchVar = mean(abs(input-net.layers{k}.outs.batchMean).^2,length(net.layers{k}.properties.sizeOut)+1) ;
                     if (isempty(net.layers{k}.outs.runningBatchMean))
                         net.layers{k}.outs.runningBatchMean = net.layers{k}.outs.batchMean;
                         net.layers{k}.outs.runningBatchVar  = net.layers{k}.outs.batchVar;
