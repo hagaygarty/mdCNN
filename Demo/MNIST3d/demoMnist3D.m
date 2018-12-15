@@ -9,7 +9,7 @@ dataset_folder = 'MNIST3d_dataset';
 MNIST3d = getMNIST3Ddata(dataset_folder);    
 
 % start training, will train for 15k images. 
-net   =  Train(MNIST3d,net, 15000);
+net   =  Train(MNIST3d,net, length(MNIST3d.I)*2 ); % 2 epocs
 
 % Notes:
 % Train will save the network to a file after each iteration. (net.mat) 
