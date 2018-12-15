@@ -201,7 +201,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
 
      plot(net.runInfoParam.MSE_train); hold on;
      plot(   (1:length(net.runInfoParam.MSE_test)) * length(net.runInfoParam.MSE_train)/length(net.runInfoParam.MSE_test) , net.runInfoParam.MSE_test ,'-ok');hold off
-     grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss');hold off;legend('test set','train set');drawnow
+     grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss');hold off;legend('train set','test set');drawnow
  
      %% save iteration info
  
