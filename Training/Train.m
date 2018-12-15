@@ -70,7 +70,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  net.runInfoParam.startLoop=clock;
  maxSamplesToTrain = numSamplesToTrain + net.runInfoParam.samplesLearned;
 
- fprintf('Start training on %d samples (%d batches, batchSize=%d)..\n', maxSamplesToTrain , floor(maxSamplesToTrain/net.hyperParam.batchNum),net.hyperParam.batchNum);       
+ fprintf('Start training on %d samples (%.1f epocs, %d batches, batchSize=%d)\n', maxSamplesToTrain , maxSamplesToTrain/length(dataset.I),  floor(maxSamplesToTrain/net.hyperParam.batchNum),net.hyperParam.batchNum);       
  
  if (~exist('net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni','var'))
      net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni = net.hyperParam.ni_initial;
@@ -80,6 +80,8 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
     net.runInfoParam.MSE_train=[];     
  end
 
+ figure('Name','Loss');
+ 
  %% Main epoc loop
  while (1)
      net.runInfoParam.iter=net.runInfoParam.iter+1;
