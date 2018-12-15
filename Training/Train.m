@@ -78,6 +78,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
 
  if (~exist('net.runInfoParam.MSE_train','var'))
     net.runInfoParam.MSE_train=[];     
+    net.runInfoParam.MSE_test=[];     
  end
 
  figure('Name','Loss');
@@ -163,7 +164,6 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
      startTesting=clock;
      
-     plot(net.runInfoParam.MSE_train);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss on train set');drawnow
      
      %% test testing loop
      batchIdx=0;res=[];mseSample=[];
@@ -196,17 +196,20 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      end
      endTesting=clock;
  
-     %% save iteration info
-
-     MSE_test = mean(mseSample);
+     net.runInfoParam.MSE_test(end+1) = mean(mseSample);
      sucessRate = sum(res)/length(res)*100;
+
+     plot(net.runInfoParam.MSE_train); hold on;
+     plot(   (1:length(net.runInfoParam.MSE_test)) * length(net.runInfoParam.MSE_train)/length(net.runInfoParam.MSE_test) , net.runInfoParam.MSE_test ,'-ok');hold off
+     grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss');hold off;legend('test set','train set');drawnow
  
+     %% save iteration info
  
      net.runInfoParam.endSeed = rng;
          
-     if (( MSE_test <= net.runInfoParam.minMSE ) || ((exist('net_minM','var')==0)&& (net.runInfoParam.storeMaxMSENet==1)))
-		 if ( MSE_test <= net.runInfoParam.minMSE )
-			net.runInfoParam.minMSE = MSE_test;
+     if (( net.runInfoParam.MSE_test(end) <= net.runInfoParam.minMSE ) || ((exist('net_minM','var')==0)&& (net.runInfoParam.storeMaxMSENet==1)))
+		 if ( net.runInfoParam.MSE_test(end) <= net.runInfoParam.minMSE )
+			net.runInfoParam.minMSE = net.runInfoParam.MSE_test(end);
 		 end
          if (net.runInfoParam.storeMaxMSENet==1)
             net_minM=net; %#ok<NASGU>
@@ -230,14 +233,14 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          save('net_minM.mat','net_minM');
      end
      
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).MSE=MSE_test;
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).MSE=net.runInfoParam.MSE_test(end);
      net.runInfoParam.iterInfo(net.runInfoParam.iter).sucessRate=sucessRate;
      net.runInfoParam.iterInfo(end+1).ni=net.runInfoParam.iterInfo(end).ni;
      net.runInfoParam.iterInfo(net.runInfoParam.iter).TestTime=etime(endTesting  ,startTesting );
      net.runInfoParam.iterInfo(net.runInfoParam.iter).TotaolTime=etime(endTesting  ,net.runInfoParam.startLoop );
      net.runInfoParam.iterInfo(net.runInfoParam.iter).noImpCnt=net.runInfoParam.noImprovementCount;
      
-     fprintf(' | MSE_test=%f | scesRate=%-5.2f%% | minMSE=%f | maxS=%-5.2f%% | ni=%f' , MSE_test , sucessRate,net.runInfoParam.minMSE,net.runInfoParam.maxsucessRate,net.runInfoParam.iterInfo(end).ni);
+     fprintf(' | MSE_test=%f | scesRate=%-5.2f%% | minMSE=%f | maxS=%-5.2f%% | ni=%f' , net.runInfoParam.MSE_test(end) , sucessRate,net.runInfoParam.minMSE,net.runInfoParam.maxsucessRate,net.runInfoParam.iterInfo(end).ni);
      fprintf(' | tstTime=%.2f',net.runInfoParam.iterInfo(net.runInfoParam.iter).TestTime);
      fprintf(' | totalTime=%.2f' ,net.runInfoParam.iterInfo(net.runInfoParam.iter).TotaolTime);
      fprintf(' | noImpCnt=%d/%d' ,net.runInfoParam.iterInfo(net.runInfoParam.iter).noImpCnt, net.hyperParam.noImprovementTh);
@@ -249,8 +252,8 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          break;
      end
 
-     if (( MSE_test <= net.runInfoParam.improvementRefMSE ) || ( net.runInfoParam.noImprovementCount > net.hyperParam.noImprovementTh ))
-         if (MSE_test > net.runInfoParam.improvementRefMSE)
+     if (( net.runInfoParam.MSE_test(end) <= net.runInfoParam.improvementRefMSE ) || ( net.runInfoParam.noImprovementCount > net.hyperParam.noImprovementTh ))
+         if (net.runInfoParam.MSE_test(end) > net.runInfoParam.improvementRefMSE)
              net.runInfoParam.iterInfo(end).ni=0.5*net.runInfoParam.iterInfo(end).ni;
              fprintf('Updating ni to %f, Ref was %f\n',net.runInfoParam.iterInfo(end).ni,net.runInfoParam.improvementRefMSE);
              net.runInfoParam.improvementRefMSE = Inf;
@@ -259,7 +262,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
                  break;
              end
          else
-             net.runInfoParam.improvementRefMSE = MSE_test;
+             net.runInfoParam.improvementRefMSE = net.runInfoParam.MSE_test(end);
          end
          net.runInfoParam.noImprovementCount=0;
      else
