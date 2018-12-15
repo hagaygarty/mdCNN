@@ -28,7 +28,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  net.runInfoParam.datasetInfo.minFirstIm = min(double(dataset.I{1}(:)));
  net.runInfoParam.datasetInfo.maxFirstIm = max(double(dataset.I{1}(:)));
  
-  fprintf('Number of samples to test: %d , to train: %d, first sample size:=%s, var=%.10f, min=%f, max=%f\n',...
+  fprintf('Database info - test: %d, train: %d, first sample size:=%s, var=%.10f, min=%f, max=%f\n',...
      net.runInfoParam.datasetInfo.numTest,net.runInfoParam.datasetInfo.numTrain , net.runInfoParam.datasetInfo.firstImSize , ...
      net.runInfoParam.datasetInfo.varFirstIm, net.runInfoParam.datasetInfo.minFirstIm, net.runInfoParam.datasetInfo.maxFirstIm);
  
@@ -56,7 +56,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  tic;
  
  if (net.runInfoParam.displayConvNet==1)
-     figure_handle = figure('Name','Network state ');
+     figure_handle = figure('Name','Network state');
  end
  
  if (net.hyperParam.addBackround==1)
@@ -79,9 +79,11 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  if (~exist('net.runInfoParam.MSE_train','var'))
     net.runInfoParam.MSE_train=[];     
     net.runInfoParam.MSE_test=[];     
+    net.runInfoParam.sucessRate_Test=[];     
+    net.runInfoParam.sucessRate_Train=[];     
  end
 
- figure('Name','Loss');
+ figure('Name','Training stats');
  
  %% Main epoc loop
  while (1)
@@ -143,7 +145,10 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          net = backPropegate(net, BatchSample, expectedOut);
          cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
          net.runInfoParam.MSE_train(end+1) = mean(cost(:));
-         
+         [~,maxNet]      = max(squeeze(net.layers{end}.outs.activation));
+         [~,maxExpected] = max(squeeze(expectedOut));
+         net.runInfoParam.sucessRate_Train(end+1) = sum(maxExpected==maxNet)/length(maxExpected)*100;
+        
          net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad=net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsGrad+perfomOnNetDerivatives(net,@(x)(rms(x)));
          net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr=net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr+rms(net.layers{end}.error(:));
 
@@ -197,12 +202,19 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      endTesting=clock;
  
      net.runInfoParam.MSE_test(end+1) = mean(mseSample);
-     sucessRate = sum(res)/length(res)*100;
-
+     net.runInfoParam.sucessRate_Test(end+1) = sum(res)/length(res)*100;
+     
+     %% plot training stats
+     subplot(2,1,2);
      plot(net.runInfoParam.MSE_train); hold on;
      plot(   (1:length(net.runInfoParam.MSE_test)) * length(net.runInfoParam.MSE_train)/length(net.runInfoParam.MSE_test) , net.runInfoParam.MSE_test ,'-ok');hold off
-     grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss');hold off;legend('train set','test set');drawnow
- 
+     grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss');hold off;legend('train set','test set');
+     subplot(2,1,1);
+     plot(net.runInfoParam.sucessRate_Train); hold on;
+     plot(   (1:length(net.runInfoParam.sucessRate_Test)) * length(net.runInfoParam.sucessRate_Train)/length(net.runInfoParam.sucessRate_Test) , net.runInfoParam.sucessRate_Test ,'-ok');hold off
+     grid on;xlabel('Batch num');ylabel('success rate %');title('classification');hold off;legend('train set','test set','Location','SE');
+     drawnow;
+     
      %% save iteration info
  
      net.runInfoParam.endSeed = rng;
@@ -216,9 +228,9 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
          end
      end
  
-     if (( sucessRate>=net.runInfoParam.maxsucessRate ) || ((exist('net_maxS','var')==0)&& (net.runInfoParam.storeMaxMSENet==1)))
-		 if ( sucessRate>=net.runInfoParam.maxsucessRate )
-			net.runInfoParam.maxsucessRate = sucessRate;
+     if (( net.runInfoParam.sucessRate_Test(end)>=net.runInfoParam.maxsucessRate ) || ((exist('net_maxS','var')==0)&& (net.runInfoParam.storeMaxMSENet==1)))
+		 if ( net.runInfoParam.sucessRate_Test(end)>=net.runInfoParam.maxsucessRate )
+			net.runInfoParam.maxsucessRate = net.runInfoParam.sucessRate_Test(end);
 		 end	
          if (net.runInfoParam.storeMaxMSENet==1)
             net_maxS=net; %#ok<NASGU>
@@ -234,13 +246,13 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      end
      
      net.runInfoParam.iterInfo(net.runInfoParam.iter).MSE=net.runInfoParam.MSE_test(end);
-     net.runInfoParam.iterInfo(net.runInfoParam.iter).sucessRate=sucessRate;
+     net.runInfoParam.iterInfo(net.runInfoParam.iter).sucessRate_Test=net.runInfoParam.sucessRate_Test(end);
      net.runInfoParam.iterInfo(end+1).ni=net.runInfoParam.iterInfo(end).ni;
      net.runInfoParam.iterInfo(net.runInfoParam.iter).TestTime=etime(endTesting  ,startTesting );
      net.runInfoParam.iterInfo(net.runInfoParam.iter).TotaolTime=etime(endTesting  ,net.runInfoParam.startLoop );
      net.runInfoParam.iterInfo(net.runInfoParam.iter).noImpCnt=net.runInfoParam.noImprovementCount;
      
-     fprintf(' | MSE_test=%f | scesRate=%-5.2f%% | minMSE=%f | maxS=%-5.2f%% | ni=%f' , net.runInfoParam.MSE_test(end) , sucessRate,net.runInfoParam.minMSE,net.runInfoParam.maxsucessRate,net.runInfoParam.iterInfo(end).ni);
+     fprintf(' | MSE_test=%f | scesRate=%-5.2f%% | minMSE=%f | maxS=%-5.2f%% | ni=%f' , net.runInfoParam.MSE_test(end) , net.runInfoParam.sucessRate_Test(end),net.runInfoParam.minMSE,net.runInfoParam.maxsucessRate,net.runInfoParam.iterInfo(end).ni);
      fprintf(' | tstTime=%.2f',net.runInfoParam.iterInfo(net.runInfoParam.iter).TestTime);
      fprintf(' | totalTime=%.2f' ,net.runInfoParam.iterInfo(net.runInfoParam.iter).TotaolTime);
      fprintf(' | noImpCnt=%d/%d' ,net.runInfoParam.iterInfo(net.runInfoParam.iter).noImpCnt, net.hyperParam.noImprovementTh);
