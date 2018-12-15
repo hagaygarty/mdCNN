@@ -161,7 +161,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
  
      startTesting=clock;
      
-     plot(smooth(net.runInfoParam.MSE_train,net.hyperParam.batchNum));grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');title('MSE on train set');drawnow
+     plot(net.runInfoParam.MSE_train);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('loss');title('loss on train set');drawnow
      
      %% test testing loop
      batchIdx=0;res=[];mseSample=[];
