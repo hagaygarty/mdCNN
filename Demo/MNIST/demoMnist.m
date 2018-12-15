@@ -1,5 +1,4 @@
 % this demo will get MNIST data automatically and start a training on network specified in 'mnist.conf'
-% it will reach 94% in several minutes, 99.2% in couple of hours
 
 addpath('../../Training' , '../../mdCNN' , '../../utilCode' );
 
@@ -9,8 +8,8 @@ dataset_folder = 'MNIST_dataset';
 
 MNIST = getMNISTdata(dataset_folder);    
 
-% start training, will train for 15k images. Reach about 96.30% in several minutes. 
-% In order to reach 99.2% remove the last parameter (15k) and let it train longer.
+% start training, will train for 180k images. Reach about 98.7% in several minutes. 
+% In order to reach better accuracy, remove the last parameter and let it train longer.
 % It will stop training automatically (once ni reach below thresh)
 net   =  Train(MNIST,net, length(MNIST.I)*3 ); % 3 epocs 
 
