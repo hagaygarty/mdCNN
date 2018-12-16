@@ -85,11 +85,15 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
 
  figure('Name','Training stats');
  
+ trainLoopCount = ceil(net.hyperParam.trainLoopCount/net.hyperParam.batchNum)*net.hyperParam.batchNum;
+ testLoopCount   = ceil(net.hyperParam.testImageNum/net.hyperParam.batchNum)*net.hyperParam.batchNum;
+ 
+ 
  %% Main epoc loop
  while (1)
      net.runInfoParam.iter=net.runInfoParam.iter+1;
  
-     fprintf('Iter %-3d| samples=%-4d',net.runInfoParam.iter,net.runInfoParam.samplesLearned+net.hyperParam.trainLoopCount);
+     fprintf('Iter %-3d| samples=%-4d',net.runInfoParam.iter,net.runInfoParam.samplesLearned+trainLoopCount);
  
      startIter=clock;
      net.runInfoParam.iterInfo(net.runInfoParam.iter).rmsErr=0;
@@ -98,7 +102,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      %% start training loop
      BatchSample=zeros([net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm net.hyperParam.batchNum]);
      batchIdx=0;
-     for i=1:net.hyperParam.trainLoopCount
+     for i=1:trainLoopCount
          batchIdx=batchIdx+1;
          if (net.hyperParam.randomizeTrainingSamples==1)
             idx = randi(length(dataset.I));
@@ -172,7 +176,7 @@ diary(fullfile(logFolder ,['Console_'  datestr(now,'dd-mm-yyyy_hh-MM-ss') '.txt'
      
      %% test testing loop
      batchIdx=0;res=[];mseSample=[];
-     for i=1:net.hyperParam.testImageNum
+     for i=1:testLoopCount
          batchIdx=batchIdx+1;
          idx=mod(i-1,length(dataset.I_test))+1;
          sample=double(dataset.I_test{idx});
