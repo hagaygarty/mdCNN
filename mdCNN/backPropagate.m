@@ -5,7 +5,7 @@
 
 
 
-function [net] = backPropegate(net, input, expectedOut)
+function [net] = backPropagate(net, input, expectedOut)
 % 3 steps to doing back prop , first is feedForward, second is calculating the
 % errors , third is calculating the derivitives
 % The conv in the code below is calculated using FFT. This is much faster
