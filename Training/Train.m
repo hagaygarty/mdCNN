@@ -66,7 +66,7 @@ rng(net.runInfoParam.endSeed);
 net.runInfoParam.startLoop=clock;
 maxSamplesToTrain = numSamplesToTrain + net.runInfoParam.samplesLearned;
 
-fprintf('Start training on %d samples (%.1f epocs, %d batches, batchSize=%d)\n', maxSamplesToTrain , maxSamplesToTrain/length(dataset.I),  floor(maxSamplesToTrain/net.hyperParam.batchNum),net.hyperParam.batchNum);
+fprintf('Start training on %d samples (%.1f epocs, %d batches, batchSize=%d)\n', numSamplesToTrain , numSamplesToTrain/length(dataset.I),  floor(numSamplesToTrain/net.hyperParam.batchNum),net.hyperParam.batchNum);
 
 if (net.runInfoParam.iter==0)
     net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni = net.hyperParam.ni_initial;
@@ -74,7 +74,7 @@ else
     net.runInfoParam.iterInfo(net.runInfoParam.iter+1).ni = net.runInfoParam.iterInfo(net.runInfoParam.iter).ni;
 end
 
-if (~exist('net.runInfoParam.loss_train','var'))
+if (~isfield(net.runInfoParam,'loss_train'))
     net.runInfoParam.loss_train=[];
     net.runInfoParam.loss_test=[];
     net.runInfoParam.sucessRate_Test=[];
