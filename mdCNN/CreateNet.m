@@ -13,7 +13,7 @@ function [ net ] = CreateNet( conf_file )
      eval(txt);
      
      net.properties.numLayers  = length(net.layers);
-     net.properties.version    = 2.2;
+     net.properties.version    = 2.3;
 
      conf_dirStruct = dir(conf_file); conf_dirStruct.name=conf_file;
      net.properties.sources{1}=[dir('./*.m') ; dir('./Util/*.m') ; conf_dirStruct];
@@ -25,13 +25,13 @@ function [ net ] = CreateNet( conf_file )
      net.runInfoParam.samplesLearned=0;
      net.runInfoParam.maxsucessRate=0;
      net.runInfoParam.noImprovementCount=0;
-     net.runInfoParam.minMSE=Inf;
-     net.runInfoParam.improvementRefMSE=inf;
+     net.runInfoParam.minLoss=Inf;
+     net.runInfoParam.improvementRefLoss=inf;
      
  
      net = initNetWeight(net);
 
-     net.properties.numOutputs = net.layers{end}.properties.numFm;
+     net.properties.numOutputs = prod(net.layers{end}.properties.sizeOut);
 
      net.runInfoParam.endSeed = rng;
 
@@ -43,7 +43,7 @@ function [ net ] = initNetDefaults( net )
 
 net.hyperParam.trainLoopCount=1000;%on how many samples to train before evaluating the network
 net.hyperParam.testImageNum=2000;
-net.hyperParam.batchNum = 1; %on how many samples to train before updating weights.
+net.hyperParam.batchNum = 1; % on how many samples to average weights update
 net.hyperParam.ni_initial    = 0.05;% ni to start training process
 net.hyperParam.ni_final = 0.00001;% final ni to stop the training process
 net.hyperParam.noImprovementTh=50; % if after noImprovementTh there is no improvement , reduce ni
@@ -83,9 +83,8 @@ net.hyperParam.randomizeTrainingSamples=1; % randomize the samples selected from
 
 
 %%%%%%%%%%%%%% Run info - parameters that change every iteration %%%%%%%%%%%%%%
-net.runInfoParam.storeMaxMSENet = 0; % this enables the trainer to store also the net with the highest MSE found (in addition to the latest one)
+net.runInfoParam.storeMinLossNet= 0; % this enables the trainer to store also the net with the lowest loss and max success rate found (in addition to the latest one)
 net.runInfoParam.verifyBP       = 1; % can perform pre-train back-propagation verification. Useful to detect faults in the application
-net.runInfoParam.displayConvNet = 0;
 
 %%%%%%%%%%%%%% types %%%%%%%%%%%%%%
 net.layers={};
