@@ -33,7 +33,7 @@ while( iter<maxIter)
         batch(:,:,:,:,bIdx) = double(MNIST.I{randi(length(MNIST.I))})/255;%get random batch from train dataset
     end
     expectedOut = batch;
-    net = backPropegate(net, batch, expectedOut);
+    net = backPropagate(net, batch, expectedOut);
     net = updateWeights(net, ni, net.hyperParam.momentum , net.hyperParam.lambda);
     netOut = net.layers{end}.outs.activation;
     cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);

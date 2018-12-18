@@ -27,7 +27,7 @@ expectedOut(expectedOut==0) = 0.001;
 
 rng(initSeed);
 % create calculated dCdW
-net = backPropegate(net, input, expectedOut);
+net = backPropagate(net, input, expectedOut);
 
 %create W+dW
 dw=1*10^-9.5;
