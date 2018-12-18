@@ -139,12 +139,7 @@ for idx=1:length(worseLossIdx)
     
     if ( (net.layers{1}.properties.numFm==1)&&(sum(net.layers{1}.properties.sizeFm>1)==3))
         %3d image
-        if ( showMiddlePatchOnly==1)
-            imshow(im(:,:,round(size(im,3)/2)),'Border','loose');
-        else
-            showIso(im,0,0,h);
-        end
-        
+        showIso(im,0,0,h);
     else
         imshow(im,'Border','loose');
     end
