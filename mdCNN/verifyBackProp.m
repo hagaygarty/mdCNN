@@ -115,7 +115,7 @@ for k=1:size(net.layers,2)
                 else
                     numprevFm = size(net.layers{k}.weight{1},4);
                 end
-                for prevFm=1:[1:ceil(numprevFm/50):numprevFm numprevFm]
+                for prevFm=[1:ceil(numprevFm/50):numprevFm numprevFm]
                     for iter=1:numIter
                         if (isequal(net.layers{k}.properties.type,net.types.fc))
                             y=randi(size(net.layers{k}.fcweight,1));
