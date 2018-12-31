@@ -1,0 +1,104 @@
+Dataset info - test: 10000, train: 60000, first sample size:=28  28, var=6352.04, min=0.000000, max=255.000000
+Verifying backProp..
+Checking layer 1  - input        
+Checking layer 2  - conv         
+Checking layer 3  - conv         
+Checking layer 4  - batchNorm    
+Checking layer 5  - fc           
+Checking layer 6  - fc           
+Checking layer 7  - softmax      
+Checking layer 8  - output       
+Network is OK. Verification time=46.17
+Start training on 180000 samples (3.0 epocs, 11250 batches, batchSize=16)
+Iter 1  | samples=2048 | time=135.77 | lossTrain=0.271034 | rmsErr=6.124708 | rmsGrad=0.000189 | meanWeight=0.086366 | varWeight=0.007407 | lossTest=0.261460 | scesRate=84.47% | minLoss=0.261460 | maxS=84.47% | ni=0.100000 | tstTime=18.99 | totalTime=154.85 | noImpCnt=0/8
+Iter 2  | samples=4096 | time=129.50 | lossTrain=0.253150 | rmsErr=4.588018 | rmsGrad=0.000122 | meanWeight=0.086444 | varWeight=0.007421 | lossTest=0.253602 | scesRate=85.55% | minLoss=0.253602 | maxS=85.55% | ni=0.100000 | tstTime=17.30 | totalTime=303.29 | noImpCnt=0/8
+Iter 3  | samples=6144{Operation terminated by user during <a href="matlab:matlab.internal.language.introspective.errorDocCallback('backPropagate', 'D:\mdCNN_git\mdCNN\backPropagate.m', 78)" style="font-weight:bold">backPropagate</a> (<a href="matlab: opentoline('D:\mdCNN_git\mdCNN\backPropagate.m',78,0)">line 78</a>)
+
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('Train', 'D:\mdCNN_git\Training\Train.m', 155)" style="font-weight:bold">Train</a> (<a href="matlab: opentoline('D:\mdCNN_git\Training\Train.m',155,0)">line 155</a>)
+        net = backPropagate(net, Batch, expectedOut);
+
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('demoMnist', 'D:\mdCNN_git\Demo\MNIST\demoMnist.m', 14)" style="font-weight:bold">demoMnist</a> (<a href="matlab: opentoline('D:\mdCNN_git\Demo\MNIST\demoMnist.m',14,0)">line 14</a>)
+net   =  Train(MNIST,net, length(MNIST.I)*3 ); % 3 epocs
+} 
+clear all
+demoMnist
+multi dimentional CNN , Hagay Garty 2016 | hagaygarty@gmail.com
+Initializing network..
+Initializing layer 1 - input
+Initializing layer 2 - conv
+Initializing layer 3 - conv
+[Warning: Layer 3 input plus pad is 28  28   1 , not a power of 2. May reduce speed] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('initNetWeight', 'D:\mdCNN_git\mdCNN\initNetWeight.m', 204)" style="font-weight:bold">initNetWeight</a> (<a href="matlab: opentoline('D:\mdCNN_git\mdCNN\initNetWeight.m',204,0)">line 204</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('CreateNet', 'D:\mdCNN_git\mdCNN\CreateNet.m', 32)" style="font-weight:bold">CreateNet</a> (<a href="matlab: opentoline('D:\mdCNN_git\mdCNN\CreateNet.m',32,0)">line 32</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('demoMnist', 'D:\mdCNN_git\Demo\MNIST\demoMnist.m', 5)" style="font-weight:bold">demoMnist</a> (<a href="matlab: opentoline('D:\mdCNN_git\Demo\MNIST\demoMnist.m',5,0)">line 5</a>)] 
+Initializing layer 4 - batchNorm
+Initializing layer 5 - fc
+Initializing layer 6 - fc
+Initializing layer 7 - softmax
+Initializing layer 8 - output
+    <strong>trainLoopCount</strong><strong>    testImageNum</strong><strong>    batchNum</strong><strong>    ni_initial</strong><strong>    ni_final</strong><strong>    noImprovementTh</strong><strong>    momentum</strong><strong>    constInitWeight</strong><strong>    lambda</strong><strong>    testOnData</strong><strong>    addBackround</strong><strong>    testOnNull</strong><strong>    augmentImage</strong><strong>    augmentParams</strong><strong>    centralizeImage</strong><strong>    cropImage</strong><strong>    flipImage</strong><strong>    useRandomPatch</strong><strong>    testNumPatches</strong><strong>    selevtivePatchVarTh</strong><strong>    testOnMiddlePatchOnly</strong><strong>    normalizeNetworkInput</strong><strong>    randomizeTrainingSamples</strong>
+    <strong>______________</strong>    <strong>____________</strong>    <strong>________</strong>    <strong>__________</strong>    <strong>________</strong>    <strong>_______________</strong>    <strong>________</strong>    <strong>_______________</strong>    <strong>______</strong>    <strong>__________</strong>    <strong>____________</strong>    <strong>__________</strong>    <strong>____________</strong>    <strong>_____________</strong>    <strong>_______________</strong>    <strong>_________</strong>    <strong>_________</strong>    <strong>______________</strong>    <strong>______________</strong>    <strong>___________________</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>________________________</strong>
+
+    2048              1024            16          0.1           0.0005      8                  0           NaN                0         0             0               0             0               [1x1 struct]     0                  0            0            0                 1                 0                      0                        1                        0                       
+
+    <strong>storeMinLossNet</strong><strong>    verifyBP</strong><strong>    iter</strong><strong>    samplesLearned</strong><strong>    maxsucessRate</strong><strong>    noImprovementCount</strong><strong>    minLoss</strong><strong>    improvementRefLoss</strong><strong>      endSeed   </strong>
+    <strong>_______________</strong>    <strong>________</strong>    <strong>____</strong>    <strong>______________</strong>    <strong>_____________</strong>    <strong>__________________</strong>    <strong>_______</strong>    <strong>__________________</strong>    <strong>____________</strong>
+
+    0                  1           0       0                 0                0                     Inf        Inf                   [1x1 struct]
+
+Layer 1: Activation=Unit, dActivation=dUnit
+    <strong>type </strong><strong>        sizeFm    </strong><strong>    numFm</strong><strong>    numWeights</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>      sizeOut   </strong><strong>    dropOut</strong>
+    <strong>_____</strong>    <strong>______________</strong>    <strong>_____</strong>    <strong>__________</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>____________</strong>    <strong>_______</strong>
+
+    input    28    28     1    1        0             [1x1 function_handle]    [1x1 function_handle]    [1x4 double]    1      
+
+Layer 2: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>      kernel   </strong><strong>        pad    </strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    inputDim</strong><strong>      stride   </strong><strong>      pooling  </strong><strong>        sizeFm    </strong><strong>    numWeights</strong><strong>                indexesStride            </strong><strong>      sizeOut   </strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>______________</strong>    <strong>__________</strong>    <strong>_____________________________________</strong>    <strong>____________</strong>
+
+    conv    12       5    5    1    2    2    0    1          [1x1 function_handle]    [1x1 function_handle]    2           1    1    1    1    1    1    28    28     1    312           [1x28 double]    [1x28 double]    [1]    [1x4 double]
+
+Layer 3: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>        kernel    </strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    inputDim</strong><strong>      stride   </strong><strong>        pad    </strong><strong>      pooling  </strong><strong>        sizeFm    </strong><strong>    numWeights</strong><strong>                indexesStride            </strong><strong>      sizeOut   </strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>______________</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>___________</strong>    <strong>______________</strong>    <strong>__________</strong>    <strong>_____________________________________</strong>    <strong>____________</strong>
+
+    conv    24       13    13     1    1          [1x1 function_handle]    [1x1 function_handle]    2           1    1    1    0    0    0    1    1    1    16    16     1    48696         [1x16 double]    [1x16 double]    [1]    [1x4 double]
+
+Layer 4: Activation=Unit, dActivation=dUnit
+    <strong>  type   </strong><strong>    numFm</strong><strong>     EPS </strong><strong>    niFactor</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    initGamma</strong><strong>    initBeta</strong><strong>    numWeights</strong><strong>     alpha </strong><strong>    dropOut</strong><strong>        sizeFm    </strong><strong>      sizeOut   </strong>
+    <strong>_________</strong>    <strong>_____</strong>    <strong>_____</strong>    <strong>________</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>_________</strong>    <strong>________</strong>    <strong>__________</strong>    <strong>_______</strong>    <strong>_______</strong>    <strong>______________</strong>    <strong>____________</strong>
+
+    batchNorm    24       1e-05    1           [1x1 function_handle]    [1x1 function_handle]    1            0           12288         0.03125    1          16    16     1    [1x4 double]
+
+Layer 5: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    sizeFm</strong><strong>    numWeights</strong><strong>    sizeOut </strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>______</strong>    <strong>__________</strong>    <strong>________</strong>
+
+    fc      128      0.8        [1x1 function_handle]    [1x1 function_handle]    1         7.8656e+05    1    128
+
+Layer 6: Activation=Sigmoid, dActivation=dSigmoid
+    <strong>type</strong><strong>    numFm</strong><strong>    dropOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    sizeFm</strong><strong>    numWeights</strong><strong>    sizeOut</strong>
+    <strong>____</strong>    <strong>_____</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>______</strong>    <strong>__________</strong>    <strong>_______</strong>
+
+    fc      10       1          [1x1 function_handle]    [1x1 function_handle]    1         1290          1    10
+
+Layer 7: Activation=Unit, dActivation=dUnit
+    <strong> type  </strong><strong>    numFm</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    dropOut</strong><strong>    sizeFm</strong><strong>    numWeights</strong><strong>    sizeOut</strong>
+    <strong>_______</strong>    <strong>_____</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>_______</strong>    <strong>______</strong>    <strong>__________</strong>    <strong>_______</strong>
+
+    softmax    10       [1x1 function_handle]    [1x1 function_handle]    1          1         0             1    10
+
+Layer 8: Activation=Unit, dActivation=dUnit
+    <strong> type </strong><strong>          lossFunc       </strong><strong>          costFunc       </strong><strong>    sizeFm</strong><strong>    numFm</strong><strong>    sizeOut</strong><strong>         Activation      </strong><strong>         dActivation     </strong><strong>    numWeights</strong>
+    <strong>______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>______</strong>    <strong>_____</strong>    <strong>_______</strong>    <strong>_____________________</strong>    <strong>_____________________</strong>    <strong>__________</strong>
+
+    output    [1x1 function_handle]    [1x1 function_handle]    1         10       1    10    [1x1 function_handle]    [1x1 function_handle]    0         
+
+Network properties:
+
+    <strong>skipLastLayerErrorCalc</strong><strong>    numLayers</strong><strong>    version</strong><strong>      sources   </strong><strong>    numWeights</strong><strong>    numOutputs</strong>
+    <strong>______________________</strong>    <strong>_________</strong>    <strong>_______</strong>    <strong>____________</strong>    <strong>__________</strong>    <strong>__________</strong>
+
+    1                         8            2.3        [4x1 struct]    8.4915e+05    10        
+

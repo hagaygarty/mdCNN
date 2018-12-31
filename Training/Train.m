@@ -362,3 +362,8 @@ function [ images ] = normalize( images )
     images.I = normalizeSet(images.I);
     images.I_test = normalizeSet(images.I_test);
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [ res ] = rms( x )
+    res = mean(x.^2);
+end
