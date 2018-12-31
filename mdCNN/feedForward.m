@@ -26,8 +26,8 @@ for k=2:size(net.layers,2)-1
             for dim=1:length(net.layers{k}.properties.sizeOut)
                 maxInput = max(maxInput,[],dim);
             end
-            net.layers{k}.outs.expIn = exp(input-maxInput);
-            net.layers{k}.outs.sumExp=sumDim(net.layers{k}.outs.expIn, 1:length(net.layers{k}.properties.sizeOut) );
+            net.layers{k}.outs.expIn = exp(input-repmat(maxInput,net.layers{k}.properties.sizeOut));
+            net.layers{k}.outs.sumExp=repmat(sumDim(net.layers{k}.outs.expIn, 1:length(net.layers{k}.properties.sizeOut) ) ,net.layers{k}.properties.sizeOut );
             net.layers{k}.outs.z =net.layers{k}.outs.expIn./net.layers{k}.outs.sumExp;
         case net.types.fc
             %% fully connected layer
@@ -83,7 +83,7 @@ for k=2:size(net.layers,2)-1
                     net.layers{k}.outs.batchVar = net.layers{k}.outs.runningBatchVar;
                 else
                     net.layers{k}.outs.batchMean = mean(input,length(net.layers{k}.properties.sizeOut)+1);
-                    net.layers{k}.outs.batchVar = mean(abs(input-net.layers{k}.outs.batchMean).^2,length(net.layers{k}.properties.sizeOut)+1) ;
+                    net.layers{k}.outs.batchVar = mean((input-repmat(net.layers{k}.outs.batchMean, [ones(1,length(net.layers{k}.properties.sizeOut)) batchNum]  ) ).^2,length(net.layers{k}.properties.sizeOut)+1) ;
                     if (isempty(net.layers{k}.outs.runningBatchMean))
                         net.layers{k}.outs.runningBatchMean = net.layers{k}.outs.batchMean;
                         net.layers{k}.outs.runningBatchVar  = net.layers{k}.outs.batchVar;
@@ -93,8 +93,8 @@ for k=2:size(net.layers,2)-1
                     end
                     
                 end
-                
-                net.layers{k}.outs.z = (input-net.layers{k}.outs.batchMean)./sqrt(net.layers{k}.properties.EPS+net.layers{k}.outs.batchVar).*net.layers{k}.gamma+net.layers{k}.beta;
+                net.layers{k}.outs.Xh = (input-repmat(net.layers{k}.outs.batchMean,[ones(1,length(net.layers{k}.properties.sizeOut)) batchNum]))./repmat(sqrt(net.layers{k}.properties.EPS+net.layers{k}.outs.batchVar), [ones(1,length(net.layers{k}.properties.sizeOut)) batchNum]);
+                net.layers{k}.outs.z = net.layers{k}.outs.Xh.*repmat(net.layers{k}.gamma,[ones(1,length(net.layers{k}.properties.sizeOut)) batchNum])+repmat(net.layers{k}.beta,[ones(1,length(net.layers{k}.properties.sizeOut)) batchNum]);
         otherwise
             assert(false,'Error - unknown layer type %s in layer %d\n',net.layers{k}.properties.type,k);
     end

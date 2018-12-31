@@ -83,7 +83,7 @@ for idx=1:numSamples
     cost = net.layers{end}.properties.costFunc(net.layers{end}.outs.activation,expectedOut);
     loss(idxRange)              =  squeeze(mean(cost));
     
-    confMatOutputs(:,idxRange) = net.layers{end}.outs.activation./sum(net.layers{end}.outs.activation,2);
+    confMatOutputs(:,idxRange) = net.layers{end}.outs.activation./repmat(sum(net.layers{end}.outs.activation,2),net.layers{end}.properties.sizeOut);
     
     BatchSample=zeros([net.layers{1}.properties.sizeFm net.layers{1}.properties.numFm 0]); % clear the batch
     expectedOut=zeros([net.layers{end}.properties.sizeOut 0]);% create an empty expected classification
