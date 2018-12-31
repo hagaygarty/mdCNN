@@ -108,14 +108,14 @@ for k=1:size(net.layers,2)
         
         
         if (~isequal(net.layers{k}.properties.type,net.types.batchNorm))
-            
-            for fm=1:net.layers{k}.properties.numFm
+            % check first fm, last fm and up to 50 in between
+            for fm=[1:ceil(net.layers{k}.properties.numFm/50):net.layers{k}.properties.numFm net.layers{k}.properties.numFm]
                 if (isequal(net.layers{k}.properties.type,net.types.fc))
                     numprevFm = 1;
                 else
                     numprevFm = size(net.layers{k}.weight{1},4);
                 end
-                for prevFm=1:numprevFm
+                for prevFm=1:[1:ceil(numprevFm/50):numprevFm numprevFm]
                     for iter=1:numIter
                         if (isequal(net.layers{k}.properties.type,net.types.fc))
                             y=randi(size(net.layers{k}.fcweight,1));
