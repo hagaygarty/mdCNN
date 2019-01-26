@@ -56,8 +56,9 @@ while( iter<maxIter)
       %  plot(mse);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylames('MSE');
 
         set(0,'CurrentFigure',mseBatchfig);
-        plot(msePerBatch);grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');
-
+        plot(msePerBatch); hold on;          
+        plot(   (1:length(mse)) * length(msePerBatch)/length(mse) , mse ,'-ok');hold off   
+        grid on;set(gca, 'YScale', 'log');xlabel('Batch num');ylabel('MSE');title('loss');legend('train set','test set');
         
         set(0,'CurrentFigure',diffs);
        
